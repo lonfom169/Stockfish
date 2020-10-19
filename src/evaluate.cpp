@@ -1027,10 +1027,18 @@ Value Eval::evaluate(const Position& pos) {
       // If there is PSQ imbalance use classical eval, with small probability if it is small
       Value psq = Value(abs(eg_value(pos.psq_score())));
       int   r50 = 16 + pos.rule50_count();
+      int   bfk = popcount(pos.blockers_for_king(WHITE)) + popcount(pos.blockers_for_king(BLACK));
       bool  largePsq = psq * 16 > (NNUEThreshold1 + pos.non_pawn_material() / 64) * r50;
       bool  classical = largePsq || (psq > PawnValueMg / 4 && !(pos.this_thread()->nodes & 0xB));
 
-      v = classical ? Evaluation<NO_TRACE>(pos).value() : adjusted_NNUE();
+      if (bfk < 3 && pos.count<ALL_PIECES>() > 26)
+      {
+          v = adjusted_NNUE();
+      }
+      else
+      {
+          v = classical ? Evaluation<NO_TRACE>(pos).value() : adjusted_NNUE();
+      }
 
       // If the classical eval is small and imbalance large, use NNUE nevertheless.
       // For the case of opposite colored bishops, switch to NNUE eval with
