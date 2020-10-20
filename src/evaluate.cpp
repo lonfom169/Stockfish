@@ -1012,6 +1012,8 @@ make_v:
 
 Value Eval::evaluate(const Position& pos) {
 
+  Bitboard whiteKT = (FileCBB | FileDBB | FileEBB | FileFBB) & (Rank1BB | Rank2BB);
+  Bitboard blackKT = (FileCBB | FileDBB | FileEBB | FileFBB) & (Rank7BB | Rank8BB);
   Value v;
 
   if (!Eval::useNNUE)
@@ -1030,7 +1032,15 @@ Value Eval::evaluate(const Position& pos) {
       bool  largePsq = psq * 16 > (NNUEThreshold1 + pos.non_pawn_material() / 64) * r50;
       bool  classical = largePsq || (psq > PawnValueMg / 4 && !(pos.this_thread()->nodes & 0xB));
 
-      v = classical ? Evaluation<NO_TRACE>(pos).value() : adjusted_NNUE();
+      if ( ((pos.pieces(WHITE, KING) & whiteKT && pos.pieces(BLACK, KING) & ~blackKT) || (pos.pieces(BLACK, KING) & blackKT && pos.pieces(WHITE, KING) & ~whiteKT))
+           && pos.count<ALL_PIECES>() > 26)
+      {
+          v = adjusted_NNUE();
+      }
+      else
+      {
+          v = classical ? Evaluation<NO_TRACE>(pos).value() : adjusted_NNUE();
+      }
 
       // If the classical eval is small and imbalance large, use NNUE nevertheless.
       // For the case of opposite colored bishops, switch to NNUE eval with
