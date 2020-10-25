@@ -63,9 +63,9 @@ namespace {
   constexpr uint64_t TtHitAverageResolution = 1024;
 
   // Razor and futility margins
-  constexpr int RazorMargin = 510;
+  constexpr int RazorMargin = 512;
   Value futility_margin(Depth d, bool improving) {
-    return Value(223 * (d - improving));
+    return Value(225 * (d - improving));
   }
 
   // Reductions lookup table, initialized at startup
@@ -73,7 +73,7 @@ namespace {
 
   Depth reduction(bool i, Depth d, int mn) {
     int r = Reductions[d] * Reductions[mn];
-    return (r + 509) / 1024 + (!i && r > 894);
+    return (r + 513) / 1024 + (!i && r > 894);
   }
 
   constexpr int futility_move_count(bool improving, Depth depth) {
