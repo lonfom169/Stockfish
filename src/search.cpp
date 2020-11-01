@@ -55,6 +55,8 @@ using Eval::evaluate;
 using namespace Search;
 
 namespace {
+  
+  int RM=510, FM=223, RE1=509, RE2=894, SB1=13, SB2=29, SB3=17, SB4=134, SB5=134;
 
   // Different node types, used as a template parameter
   enum NodeType { NonPV, PV };
@@ -63,9 +65,9 @@ namespace {
   constexpr uint64_t TtHitAverageResolution = 1024;
 
   // Razor and futility margins
-  constexpr int RazorMargin = 510;
+            int RazorMargin = RM;
   Value futility_margin(Depth d, bool improving) {
-    return Value(223 * (d - improving));
+    return Value(FM * (d - improving));
   }
 
   // Reductions lookup table, initialized at startup
@@ -73,7 +75,7 @@ namespace {
 
   Depth reduction(bool i, Depth d, int mn) {
     int r = Reductions[d] * Reductions[mn];
-    return (r + 509) / 1024 + (!i && r > 894);
+    return (r + RE1) / 1024 + (!i && r > RE2);
   }
 
   constexpr int futility_move_count(bool improving, Depth depth) {
@@ -82,8 +84,11 @@ namespace {
 
   // History and stats update bonus, based on depth
   int stat_bonus(Depth d) {
-    return d > 13 ? 29 : 17 * d * d + 134 * d - 134;
+    return d > SB1 ? SB2 : SB3 * d * d + SB4 * d - SB5;
   }
+  
+  auto myfunc = [](int m){return std::pair<int, int>(m - 25, m + 25);};
+  TUNE(SetRange(myfunc), RM, FM, RE1, RE2, SB1, SB2, SB3, SB4, SB5);
 
   // Add a small random component to draw evaluations to avoid 3fold-blindness
   Value value_draw(Thread* thisThread) {
