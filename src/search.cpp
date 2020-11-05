@@ -63,7 +63,7 @@ namespace {
   constexpr uint64_t TtHitAverageResolution = 1024;
 
   // Razor and futility margins
-  constexpr int RazorMargin = 510;
+  constexpr int RazorMargin = 512;
   Value futility_margin(Depth d, bool improving) {
     return Value(223 * (d - improving));
   }
@@ -82,7 +82,7 @@ namespace {
 
   // History and stats update bonus, based on depth
   int stat_bonus(Depth d) {
-    return d > 13 ? 29 : 17 * d * d + 134 * d - 134;
+    return d > 14 ? 29 : 17 * d * d + 134 * d - 134;
   }
 
   // Add a small random component to draw evaluations to avoid 3fold-blindness
