@@ -1122,6 +1122,12 @@ moves_loop: // When in check, search starts from here
       else if (   PieceValue[EG][pos.captured_piece()] > PawnValueEg
                && pos.non_pawn_material() <= 2 * RookValueMg)
           extension = 1;
+          
+      else if (   PvNode
+               && abs(ttValue) < 70
+               && type_of(pos.moved_piece(move)) == KING
+               && thisThread->bestMoveChanges <= 2)
+          extension = 1;
 
       // Late irreversible move extension
       if (   move == ttMove
