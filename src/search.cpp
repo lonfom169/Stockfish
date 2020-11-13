@@ -1128,6 +1128,13 @@ moves_loop: // When in check, search starts from here
           && pos.rule50_count() > 80
           && (captureOrPromotion || type_of(movedPiece) == PAWN))
           extension = 2;
+          
+      if (   ss->ply > 3
+          && extension
+          && move == ttMove
+          && abs(ttValue) > 50
+          && type_of(pos.moved_piece(move)) == KING)
+          extension = 0;
 
       // Add extension to new depth
       newDepth += extension;
