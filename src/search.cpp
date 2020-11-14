@@ -719,6 +719,16 @@ namespace {
         if (pos.rule50_count() < 90)
             return ttValue;
     }
+    
+    int ttSignal;
+
+    if (ttValue < 0)
+        ttSignal = -1;
+    else
+        ttSignal = 1;
+
+    if (thisThread->bestMoveChanges > 0)
+        ttValue = Value(abs(ttValue) - abs(ttValue) / (thisThread->bestMoveChanges * 2) * ttSignal);
 
     // Step 5. Tablebases probe
     if (!rootNode && TB::Cardinality)
