@@ -1123,6 +1123,14 @@ moves_loop: // When in check, search starts from here
                && pos.non_pawn_material() <= 2 * RookValueMg)
           extension = 1;
 
+      else if (   !PvNode && !cutNode
+               && move == ttMove
+               && abs(ttValue) == std::clamp(abs(ttValue), 40, 120)
+               && thisThread->bestMoveChanges > 4
+               && type_of(movedPiece) == KING
+               && priorCapture)
+          extension = 1;
+
       // Late irreversible move extension
       if (   move == ttMove
           && pos.rule50_count() > 80
