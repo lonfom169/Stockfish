@@ -1173,6 +1173,9 @@ moves_loop: // When in check, search starts from here
           if ((rootNode || !PvNode) && depth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if (moveCount > 1 + rootNode + PvNode && thisThread->failedHighCnt > 4)
+              r++;
+
           if (moveCountPruning && !formerPv)
               r++;
 
