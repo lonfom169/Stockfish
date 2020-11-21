@@ -1226,6 +1226,9 @@ moves_loop: // When in check, search starts from here
               if (depth < 8 && moveCount > 2)
                   r++;
 
+              if ((rootNode || !PvNode) && thisThread->failedHighCnt < 4)
+                  r++;
+
               // Unless giving check, this capture is likely bad
               if (   !givesCheck
                   && ss->staticEval + PieceValue[EG][pos.captured_piece()] + 213 * depth <= alpha)
