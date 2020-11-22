@@ -1173,6 +1173,10 @@ moves_loop: // When in check, search starts from here
           if ((rootNode || !PvNode) && depth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if (   Value(abs(eg_value(pos.psq_score()))) * 16 > (550 + pos.non_pawn_material() / 64) * (16 + pos.rule50_count())
+              || (Value(abs(eg_value(pos.psq_score()))) > PawnValueMg / 4 && !(pos.this_thread()->nodes & 0xB)))
+              r--;
+
           if (moveCountPruning && !formerPv)
               r++;
 
