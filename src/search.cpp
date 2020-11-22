@@ -606,6 +606,8 @@ namespace {
     bool formerPv, givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning,
          ttCapture, singularQuietLMR;
+    bool classical =    Value(abs(eg_value(pos.psq_score()))) * 16 > (550 + pos.non_pawn_material() / 64) * (16 + pos.rule50_count())
+                     || (Value(abs(eg_value(pos.psq_score()))) > PawnValueMg / 4 && !(pos.this_thread()->nodes & 0xB));
     Piece movedPiece;
     int moveCount, captureCount, quietCount;
 
@@ -1170,7 +1172,7 @@ moves_loop: // When in check, search starts from here
               r -= 2;
 
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
-          if ((rootNode || !PvNode) && depth > 10 && thisThread->bestMoveChanges <= 2)
+          if ((rootNode || !PvNode) && depth > 10 && thisThread->bestMoveChanges <= 2 && !classical)
               r++;
 
           if (moveCountPruning && !formerPv)
