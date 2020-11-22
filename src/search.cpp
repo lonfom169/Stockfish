@@ -600,7 +600,7 @@ namespace {
 
     TTEntry* tte;
     Key posKey;
-    Move ttMove, move, excludedMove, bestMove;
+    Move ttMove, move, excludedMove, bestMove, prevBestMove = MOVE_NONE;
     Depth extension, newDepth;
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool formerPv, givesCheck, improving, didLMR, priorCapture;
@@ -1226,6 +1226,9 @@ moves_loop: // When in check, search starts from here
               if (depth < 8 && moveCount > 2)
                   r++;
 
+              if (rootNode && thisThread->stableCount > 6)
+                  r++;
+
               // Unless giving check, this capture is likely bad
               if (   !givesCheck
                   && ss->staticEval + PieceValue[EG][pos.captured_piece()] + 213 * depth <= alpha)
@@ -1318,6 +1321,8 @@ moves_loop: // When in check, search starts from here
               rm.score = -VALUE_INFINITE;
       }
 
+      bestMove = prevBestMove;
+
       if (value > bestValue)
       {
           bestValue = value;
@@ -1339,6 +1344,11 @@ moves_loop: // When in check, search starts from here
               }
           }
       }
+
+      if (bestMove == prevBestMove)
+          ++thisThread->stableCount;
+      else
+          thisThread->stableCount = 0;
 
       if (move != bestMove)
       {
