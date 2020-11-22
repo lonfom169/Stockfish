@@ -600,7 +600,7 @@ namespace {
 
     TTEntry* tte;
     Key posKey;
-    Move ttMove, move, excludedMove, bestMove;
+    Move ttMove, move, excludedMove, bestMove, prevBestMove = MOVE_NONE;
     Depth extension, newDepth;
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool formerPv, givesCheck, improving, didLMR, priorCapture;
@@ -1173,6 +1173,9 @@ moves_loop: // When in check, search starts from here
           if ((rootNode || !PvNode) && depth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if ((rootNode || !PvNode) && thisThread->stableCount > 6)
+              r++;
+
           if (moveCountPruning && !formerPv)
               r++;
 
@@ -1318,6 +1321,8 @@ moves_loop: // When in check, search starts from here
               rm.score = -VALUE_INFINITE;
       }
 
+      bestMove = prevBestMove;
+
       if (value > bestValue)
       {
           bestValue = value;
@@ -1339,6 +1344,11 @@ moves_loop: // When in check, search starts from here
               }
           }
       }
+
+      if (bestMove == prevBestMove)
+          ++thisThread->stableCount;
+      else
+          thisThread->stableCount = 0;
 
       if (move != bestMove)
       {
