@@ -1197,6 +1197,9 @@ moves_loop: // When in check, search starts from here
               if (cutNode)
                   r += 2;
 
+              if (cutNode && captureCount * 2 > moveCount)
+                  r--;
+
               // Decrease reduction for moves that escape a capture. Filter out
               // castling moves, because they are coded as "king captures rook" and
               // hence break make_move(). (~2 Elo)
