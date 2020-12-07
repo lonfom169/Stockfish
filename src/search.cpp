@@ -1195,6 +1195,9 @@ moves_loop: // When in check, search starts from here
           if ((rootNode || !PvNode) && depth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if (!PvNode && pawn_attacks_bb<WHITE>(shift<pawn_push(WHITE)>(pos.pieces(WHITE, PAWN)) & ~pos.pieces()) & pos.pieces(BLACK, PAWN))
+              r++;
+
           // More reductions for late moves if position was not in previous PV
           if (moveCountPruning && !formerPv)
               r++;
