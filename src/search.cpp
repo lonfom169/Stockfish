@@ -598,6 +598,7 @@ namespace {
     StateInfo st;
     ASSERT_ALIGNED(&st, Eval::NNUE::kCacheLineSize);
 
+    Pawns::Entry* pe;
     TTEntry* tte;
     Key posKey;
     Move ttMove, move, excludedMove, bestMove;
@@ -615,6 +616,7 @@ namespace {
     priorCapture = pos.captured_piece();
     Color us = pos.side_to_move();
     moveCount = captureCount = quietCount = ss->moveCount = 0;
+    pe = Pawns::probe(pos);
     bestValue = -VALUE_INFINITE;
     maxValue = VALUE_INFINITE;
 
@@ -1194,6 +1196,10 @@ moves_loop: // When in check, search starts from here
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && depth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
+
+          if (  rootNode && pe->blocked_count() >= 4
+              && pawn_attacks_bb<WHITE>(shift<pawn_push(WHITE)>(pos.pieces(WHITE, PAWN)) & ~pos.pieces()) & pos.pieces(BLACK, PAWN))
+              r--;
 
           // More reductions for late moves if position was not in previous PV
           if (moveCountPruning && !formerPv)
