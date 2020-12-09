@@ -1145,6 +1145,13 @@ moves_loop: // When in check, search starts from here
                && pos.non_pawn_material() <= 2 * RookValueMg)
           extension = 1;
 
+      else if (   type_of(movedPiece) == PAWN
+               && givesCheck
+               && thisThread->bestMoveChanges > 2
+               && us == WHITE ? (pawn_attacks_bb<WHITE>(to_sq(move)) & pos.pieces(BLACK, PAWN))
+                              : (pawn_attacks_bb<BLACK>(to_sq(move)) & pos.pieces(WHITE, PAWN)))
+          extension = 1;
+
       // Late irreversible move extension
       if (   move == ttMove
           && pos.rule50_count() > 80
