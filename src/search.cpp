@@ -1213,6 +1213,10 @@ moves_loop: // When in check, search starts from here
               if (ttCapture)
                   r++;
 
+              if (   type_of(movedPiece) == PAWN
+                  && (pawn_attacks_bb<WHITE>(to_sq(move)) & pos.pieces(BLACK)))
+                  r--;
+
               // Increase reduction at root if failing high
               r += rootNode ? thisThread->failedHighCnt * thisThread->failedHighCnt * moveCount / 512 : 0;
 
