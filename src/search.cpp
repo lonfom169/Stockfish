@@ -1248,7 +1248,13 @@ moves_loop: // When in check, search starts from here
               // Unless giving check, this capture is likely bad
               if (   !givesCheck
                   && ss->staticEval + PieceValue[EG][pos.captured_piece()] + 210 * depth <= alpha)
+              {
                   r++;
+                  if (   PvNode
+                      && type_of(movedPiece) == PAWN
+                      && abs(ttValue) > 80)
+                  r--;
+              }
           }
 
           Depth d = std::clamp(newDepth - r, 1, newDepth);
