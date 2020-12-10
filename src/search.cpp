@@ -1189,7 +1189,7 @@ moves_loop: // When in check, search starts from here
 
           // Decrease reduction if position is or has been on the PV (~10 Elo)
           if (ss->ttPv)
-              r -= 2;
+              r -= givesCheck + 1;
 
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && depth > 10 && thisThread->bestMoveChanges <= 2)
