@@ -1190,6 +1190,8 @@ moves_loop: // When in check, search starts from here
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && thisThread->rootDepth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
+          else if (rootNode && moveCount > 14 && thisThread->bestMoveChanges == 0)
+              r++;
 
           // More reductions for late moves if position was not in previous PV
           if (moveCountPruning && !formerPv)
