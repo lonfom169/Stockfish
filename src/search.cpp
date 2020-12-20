@@ -1238,7 +1238,7 @@ moves_loop: // When in check, search starts from here
                   r++;
 
               // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
-              r -= ss->statScore / 14884;
+              r -= ss->statScore / (14884 - std::min(moveCount * moveCountPruning * 188, 14852));
           }
           else
           {
