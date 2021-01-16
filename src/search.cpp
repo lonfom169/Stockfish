@@ -386,6 +386,17 @@ void Thread::search() {
       if (!Threads.increaseDepth)
          searchAgainCounter++;
 
+      if (int(Options["MultiPV"]) == 1 && bestMoveChanges > 10 && rootDepth > 14 && rootDepth < 19)
+      {
+          multiPV = (size_t)3;
+      }
+      else if (int(Options["MultiPV"]) == 1 && bestMoveChanges > 7 && rootDepth > 11 && rootDepth < 19)
+      {
+          multiPV = (size_t)2;
+      }
+
+      multiPV = std::min(multiPV, rootMoves.size());
+
       // MultiPV loop. We perform a full root search for each PV line
       for (pvIdx = 0; pvIdx < multiPV && !Threads.stop; ++pvIdx)
       {
