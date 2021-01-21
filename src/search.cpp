@@ -1176,6 +1176,11 @@ moves_loop: // When in check, search starts from here
           if (ss->ttPv)
               r -= 2;
 
+          if (    thisThread->bestMoveChanges == 0
+              && (thisThread->mainHistory[us][from_to(move)]
+               + (*contHist[0])[movedPiece][to_sq(move)]) > 24000)
+              r++;
+
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && thisThread->rootDepth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
