@@ -1176,6 +1176,12 @@ moves_loop: // When in check, search starts from here
           if (ss->ttPv)
               r -= 2;
 
+          if ((rootNode || !PvNode) && thisThread->bestMoveChanges < 5)
+              r += ss->statScore / 16000 + depth / 10;
+
+          if (thisThread->bestMoveChanges > 2)
+              r -= ss->statScore / 24000 + depth / 12;
+
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && thisThread->rootDepth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
