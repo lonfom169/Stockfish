@@ -1242,6 +1242,11 @@ moves_loop: // When in check, search starts from here
                   r -= ss->statScore / 14884;
           }
 
+          if (thisThread->nodes & 0x9)
+              r -= thisThread->rootDepth / 16;
+          else
+              r += thisThread->rootDepth / 12;
+
           Depth d = std::clamp(newDepth - r, 1, newDepth);
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
