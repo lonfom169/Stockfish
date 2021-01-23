@@ -599,7 +599,7 @@ namespace {
 
     TTEntry* tte;
     Key posKey;
-    Move ttMove, move, excludedMove, bestMove;
+    Move ttMove, move, excludedMove, bestMove, prevBestMove;
     Depth extension, newDepth;
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool formerPv, givesCheck, improving, didLMR, priorCapture;
@@ -1205,6 +1205,9 @@ moves_loop: // When in check, search starts from here
               if (ttCapture)
                   r++;
 
+              if (rootNode && thisThread->stableCount > 7)
+                  r++;
+
               // Increase reduction at root if failing high
               r += rootNode ? thisThread->failedHighCnt * thisThread->failedHighCnt * moveCount / 512 : 0;
 
@@ -1325,6 +1328,8 @@ moves_loop: // When in check, search starts from here
               rm.score = -VALUE_INFINITE;
       }
 
+      prevBestMove = bestMove;
+
       if (value > bestValue)
       {
           bestValue = value;
@@ -1346,6 +1351,11 @@ moves_loop: // When in check, search starts from here
               }
           }
       }
+
+      if (prevBestMove == bestMove)
+          ++thisThread->stableCount;
+      else
+          thisThread->stableCount = 0;
 
       // If the move is worse than some previously searched move, remember it to update its stats later
       if (move != bestMove)
@@ -1429,7 +1439,7 @@ moves_loop: // When in check, search starts from here
 
     TTEntry* tte;
     Key posKey;
-    Move ttMove, move, bestMove;
+    Move ttMove, move, bestMove, prevBestMove;
     Depth ttDepth;
     Value bestValue, value, ttValue, futilityValue, futilityBase, oldAlpha;
     bool pvHit, givesCheck, captureOrPromotion;
@@ -1445,6 +1455,7 @@ moves_loop: // When in check, search starts from here
     Thread* thisThread = pos.this_thread();
     (ss+1)->ply = ss->ply + 1;
     bestMove = MOVE_NONE;
+    prevBestMove = MOVE_NONE;
     ss->inCheck = pos.checkers();
     moveCount = 0;
 
@@ -1603,6 +1614,8 @@ moves_loop: // When in check, search starts from here
 
       assert(value > -VALUE_INFINITE && value < VALUE_INFINITE);
 
+      prevBestMove = bestMove;
+
       // Check for a new best move
       if (value > bestValue)
       {
@@ -1622,6 +1635,11 @@ moves_loop: // When in check, search starts from here
           }
        }
     }
+
+      if (prevBestMove == bestMove)
+          ++thisThread->stableCount;
+      else
+          thisThread->stableCount = 0;
 
     // All legal moves have been searched. A special case: if we're in check
     // and no legal moves were found, it is checkmate.
