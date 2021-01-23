@@ -1176,6 +1176,9 @@ moves_loop: // When in check, search starts from here
           if (ss->ttPv)
               r -= 2;
 
+          if (thisThread->stableCount > 3)
+              r--;
+
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && thisThread->rootDepth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
@@ -1324,6 +1327,11 @@ moves_loop: // When in check, search starts from here
               // move position in the list is preserved - just the PV is pushed up.
               rm.score = -VALUE_INFINITE;
       }
+
+      if (value > bestValue - 5 && value < bestValue + 5)
+          ++thisThread->stableCount;
+      else
+          thisThread->stableCount = 0;
 
       if (value > bestValue)
       {
@@ -1602,6 +1610,11 @@ moves_loop: // When in check, search starts from here
       pos.undo_move(move);
 
       assert(value > -VALUE_INFINITE && value < VALUE_INFINITE);
+
+      if (value > bestValue - 5 && value < bestValue + 5)
+          ++thisThread->stableCount;
+      else
+          thisThread->stableCount = 0;
 
       // Check for a new best move
       if (value > bestValue)
