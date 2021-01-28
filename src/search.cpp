@@ -607,6 +607,7 @@ namespace {
          ttCapture, singularQuietLMR;
     Piece movedPiece;
     int moveCount, captureCount, quietCount;
+    int totalR;
 
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
@@ -1242,6 +1243,8 @@ moves_loop: // When in check, search starts from here
                   r -= ss->statScore / 14884;
           }
 
+          totalR = r;
+
           Depth d = std::clamp(newDepth - r, 1, newDepth);
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
@@ -1267,6 +1270,9 @@ moves_loop: // When in check, search starts from here
           {
               int bonus = value > alpha ?  stat_bonus(newDepth)
                                         : -stat_bonus(newDepth);
+
+              if (totalR < 3)
+                  bonus *= 0.75;
 
               update_continuation_histories(ss, movedPiece, to_sq(move), bonus);
           }
