@@ -607,6 +607,7 @@ namespace {
          ttCapture, singularQuietLMR;
     Piece movedPiece;
     int moveCount, captureCount, quietCount;
+    int bmThreshold;
 
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
@@ -614,6 +615,7 @@ namespace {
     priorCapture = pos.captured_piece();
     Color us = pos.side_to_move();
     moveCount = captureCount = quietCount = ss->moveCount = 0;
+    bmThreshold = 0;
     bestValue = -VALUE_INFINITE;
     maxValue = VALUE_INFINITE;
 
@@ -1176,6 +1178,12 @@ moves_loop: // When in check, search starts from here
           if (ss->ttPv)
               r -= 2;
 
+          if (rootNode && move != bestMove && bmThreshold > 0)
+          {
+              r--;
+              bmThreshold--;
+          }
+
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && thisThread->rootDepth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
@@ -1332,6 +1340,7 @@ moves_loop: // When in check, search starts from here
           if (value > alpha)
           {
               bestMove = move;
+              bmThreshold = 4;
 
               if (PvNode && !rootNode) // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
