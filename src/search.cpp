@@ -601,7 +601,7 @@ namespace {
     Key posKey;
     Move ttMove, move, excludedMove, bestMove;
     Depth extension, newDepth;
-    Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
+    Value bestValue, value, ttValue, eval, maxValue, probCutBeta, subAlpha;
     bool formerPv, givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning,
          ttCapture, singularQuietLMR;
@@ -1325,13 +1325,19 @@ moves_loop: // When in check, search starts from here
               rm.score = -VALUE_INFINITE;
       }
 
+      if (abs(value) < 7)
+          subAlpha = alpha + 1;
+      else
+          subAlpha = alpha;
+
       if (value > bestValue)
       {
           bestValue = value;
 
           if (value > alpha)
           {
-              bestMove = move;
+              if (value > subAlpha)
+                  bestMove = move;
 
               if (PvNode && !rootNode) // Update pv even in fail-high case
                   update_pv(ss->pv, move, (ss+1)->pv);
