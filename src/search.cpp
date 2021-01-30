@@ -481,10 +481,14 @@ void Thread::search() {
       if (!Threads.stop)
           completedDepth = rootDepth;
 
-      if (rootMoves[0].pv[0] != lastBestMove) {
-         lastBestMove = rootMoves[0].pv[0];
-         lastBestMoveDepth = rootDepth;
+      if (rootMoves[0].pv[0] != lastBestMove)
+      {
+          lastBestMove = rootMoves[0].pv[0];
+          lastBestMoveDepth = rootDepth;
+          stableCount = 0;
       }
+      else
+          stableCount++;
 
       // Have we found a "mate in x"?
       if (   Limits.mate
@@ -1178,7 +1182,7 @@ moves_loop: // When in check, search starts from here
 
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && thisThread->rootDepth > 10 && thisThread->bestMoveChanges <= 2)
-              r++;
+              r += 1 - (thisThread->stableCount < 3);
 
           // More reductions for late moves if position was not in previous PV
           if (moveCountPruning && !formerPv)
