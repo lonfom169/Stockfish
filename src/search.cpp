@@ -1205,6 +1205,10 @@ moves_loop: // When in check, search starts from here
               if (ttCapture)
                   r++;
 
+              for (int i = 0; i <= 3 && i < int(thisThread->rootMoves.size()); i++)
+                   if (rootNode && thisThread->bestMoveChanges > 6 && move == thisThread->rootMoves[i].pv[0])
+                       r--;
+
               // Increase reduction at root if failing high
               r += rootNode ? thisThread->failedHighCnt * thisThread->failedHighCnt * moveCount / 512 : 0;
 
