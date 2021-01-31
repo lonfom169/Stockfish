@@ -481,10 +481,14 @@ void Thread::search() {
       if (!Threads.stop)
           completedDepth = rootDepth;
 
-      if (rootMoves[0].pv[0] != lastBestMove) {
-         lastBestMove = rootMoves[0].pv[0];
-         lastBestMoveDepth = rootDepth;
+      if (rootMoves[0].pv[0] != lastBestMove)
+      {
+          lastBestMove = rootMoves[0].pv[0];
+          lastBestMoveDepth = rootDepth;
+          stableCount = 0;
       }
+      else
+          stableCount++;
 
       // Have we found a "mate in x"?
       if (   Limits.mate
@@ -1154,7 +1158,7 @@ moves_loop: // When in check, search starts from here
       // Step 15. Reduced depth search (LMR, ~200 Elo). If the move fails high it will be
       // re-searched at full depth.
       if (    depth >= 3
-          &&  moveCount > 1 + 2 * rootNode
+          &&  moveCount > 1 + 2 * rootNode + (thisThread->stableCount > 10)
           && (  !captureOrPromotion
               || moveCountPruning
               || ss->staticEval + PieceValue[EG][pos.captured_piece()] <= alpha
