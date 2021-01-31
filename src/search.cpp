@@ -1176,6 +1176,11 @@ moves_loop: // When in check, search starts from here
           if (ss->ttPv)
               r -= 2;
 
+          if (rootNode && thisThread->rootDepth > 12 && thisThread->bestMoveChanges > 8)
+              for (int i = 0; i <= 4; i++)
+                   if (move == thisThread->rootMoves[i].pv[0])
+                       r--;
+
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && thisThread->rootDepth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
