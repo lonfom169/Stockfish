@@ -28,7 +28,7 @@
 
 class TimeManagement {
 public:
-  void init(Search::LimitsType& limits, Color us, int ply);
+  void init(Search::LimitsType& limits, Color us, int ply, const Position& pos);
   TimePoint optimum() const { return optimumTime; }
   TimePoint maximum() const { return maximumTime; }
   TimePoint elapsed() const { return Search::Limits.npmsec ?

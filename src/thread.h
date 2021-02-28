@@ -63,6 +63,7 @@ public:
   Color nmpColor;
   std::atomic<uint64_t> nodes, tbHits, bestMoveChanges;
 
+  Position pos;
   Position rootPos;
   StateInfo rootState;
   Search::RootMoves rootMoves;

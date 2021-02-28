@@ -32,11 +32,13 @@ TimeManagement Time; // Our global time management object
 //      1) x basetime (+ z increment)
 //      2) x moves in y seconds (+ z increment)
 
-void TimeManagement::init(Search::LimitsType& limits, Color us, int ply) {
+void TimeManagement::init(Search::LimitsType& limits, Color us, int ply, const Position& pos) {
 
   TimePoint moveOverhead    = TimePoint(Options["Move Overhead"]);
   TimePoint slowMover       = TimePoint(Options["Slow Mover"]);
   TimePoint npmsec          = TimePoint(Options["nodestime"]);
+
+  Value psq = Value(abs(eg_value(pos.psq_score())));
 
   // optScale is a percentage of available time to use for the current move.
   // maxScale is a multiplier applied to optimumTime.
@@ -76,7 +78,7 @@ void TimeManagement::init(Search::LimitsType& limits, Color us, int ply) {
   if (limits.movestogo == 0)
   {
       optScale = std::min(0.0084 + std::pow(ply + 3.0, 0.5) * 0.0042,
-                           0.2 * limits.time[us] / double(timeLeft));
+                           (0.2 + (psq > 350) * 0.05) * limits.time[us] / double(timeLeft));
       maxScale = std::min(7.0, 4.0 + ply / 12.0);
   }
 
