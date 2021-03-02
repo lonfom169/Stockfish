@@ -1210,6 +1210,9 @@ moves_loop: // When in check, search starts from here
           if ((rootNode || !PvNode) && thisThread->rootDepth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if (moveCountPruning && tte->depth() > 8 && ss->staticEval < alpha - 200)
+              r++;
+
           // More reductions for late moves if position was not in previous PV
           if (moveCountPruning && !formerPv)
               r++;
