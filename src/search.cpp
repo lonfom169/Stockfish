@@ -1206,6 +1206,9 @@ moves_loop: // When in check, search starts from here
           if (ss->ttPv && !likelyFailLow)
               r -= 2;
 
+          if (ss->ply == 1 && depth < 9 && thisThread->bestMoveChanges > 8)
+              r--;
+
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if ((rootNode || !PvNode) && thisThread->rootDepth > 10 && thisThread->bestMoveChanges <= 2)
               r++;
