@@ -1056,6 +1056,8 @@ moves_loop: // When in check, search starts from here
       // Calculate new depth for this move
       newDepth = depth - 1;
 
+      (ss+1)->distanceFromPv = ss->distanceFromPv + moveCount - 1;
+
       // Step 13. Pruning at shallow depth (~200 Elo)
       if (  !rootNode
           && pos.non_pawn_material(us)
@@ -1099,7 +1101,8 @@ moves_loop: // When in check, search starts from here
                   continue;
 
               // Prune moves with negative SEE (~20 Elo)
-              if (!pos.see_ge(move, Value(-(30 - std::min(lmrDepth, 18)) * lmrDepth * lmrDepth)))
+              if (!pos.see_ge(move, Value(-(30 - std::min(lmrDepth, 18)) * lmrDepth * lmrDepth))
+                  && (ss+1)->distanceFromPv > 2)
                   continue;
           }
       }
@@ -1179,8 +1182,6 @@ moves_loop: // When in check, search starts from here
 
       // Step 15. Make the move
       pos.do_move(move, st, givesCheck);
-
-      (ss+1)->distanceFromPv = ss->distanceFromPv + moveCount - 1;
 
       // Step 16. Late moves reduction / extension (LMR, ~200 Elo)
       // We use various heuristics for the sons of a node after the first son has
