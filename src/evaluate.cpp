@@ -1112,17 +1112,27 @@ Value Eval::evaluate(const Position& pos) {
          return nnue;
       };
 
+      auto  mix = [&]()
+      {
+         Value cnn = (Evaluation<NO_TRACE>(pos).value() + adjusted_NNUE()) / 2;
+
+         return cnn;
+      };
+
       // If there is PSQ imbalance use classical eval, with small probability if it is small
       Value psq = Value(abs(eg_value(pos.psq_score())));
       int   r50 = 16 + pos.rule50_count();
       bool  largePsq = psq * 16 > (NNUEThreshold1 + pos.non_pawn_material() / 64) * r50;
       bool  classical = largePsq || (psq > PawnValueMg / 4 && !(pos.this_thread()->nodes & 0xB));
+      bool  cnn = psq > PawnValueMg / 2;
 
       // Use classical evaluation for really low piece endgames.
       // The most critical case is a bishop + A/H file pawn vs naked king draw.
       bool strongClassical = pos.non_pawn_material() < 2 * RookValueMg && pos.count<PAWN>() < 2;
 
-      v = classical || strongClassical ? Evaluation<NO_TRACE>(pos).value() : adjusted_NNUE();
+      v = classical || strongClassical ? Evaluation<NO_TRACE>(pos).value() :
+          !cnn                         ? adjusted_NNUE()
+                                       : mix();
 
       // If the classical eval is small and imbalance large, use NNUE nevertheless.
       // For the case of opposite colored bishops, switch to NNUE eval with
