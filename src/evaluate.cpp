@@ -1039,6 +1039,48 @@ make_v:
   }
 
 
+  Value fix_BB(const Position& pos) {
+
+    constexpr Bitboard Corners =  1ULL << SQ_A2 | 1ULL << SQ_H2 | 1ULL << SQ_A7 | 1ULL << SQ_H7;
+
+    if (!(pos.pieces(BISHOP) & Corners))
+        return VALUE_ZERO;
+
+    constexpr int penalty1 = -40;
+    constexpr int penalty2 = -8;
+    constexpr int penalty3 = -16;
+
+    int correction = 0;
+
+    if (   pos.piece_on(SQ_A2) == W_BISHOP
+        && pos.piece_on(SQ_B3) == W_PAWN)
+        correction += !pos.empty(SQ_B4)              ? penalty1
+                     : pos.piece_on(SQ_C4) == W_PAWN ? penalty2
+                                                     : penalty3;
+
+    if (   pos.piece_on(SQ_H2) == W_BISHOP
+        && pos.piece_on(SQ_G3) == W_PAWN)
+        correction += !pos.empty(SQ_G4)              ? penalty1
+                     : pos.piece_on(SQ_F4) == W_PAWN ? penalty2
+                                                     : penalty3;
+
+    if (   pos.piece_on(SQ_A7) == B_BISHOP
+        && pos.piece_on(SQ_B6) == B_PAWN)
+        correction += !pos.empty(SQ_B5)              ? -penalty1
+                     : pos.piece_on(SQ_C5) == B_PAWN ? -penalty2
+                                                     : -penalty3;
+
+    if (   pos.piece_on(SQ_H7) == B_BISHOP
+        && pos.piece_on(SQ_G6) == B_PAWN)
+        correction += !pos.empty(SQ_G5)              ? -penalty1
+                     : pos.piece_on(SQ_F5) == B_PAWN ? -penalty2
+                                                     : -penalty3;
+
+    return pos.side_to_move() == WHITE ?  Value(correction)
+                                       : -Value(correction);
+  }
+
+
   /// Fisher Random Chess: correction for cornered bishops, to fix chess960 play with NNUE
 
   Value fix_FRC(const Position& pos) {
@@ -1104,7 +1146,7 @@ Value Eval::evaluate(const Position& pos) {
                     + material / 32
                     - 4 * pos.rule50_count();
 
-         Value nnue = NNUE::evaluate(pos) * scale / 1024 + Tempo;
+         Value nnue = NNUE::evaluate(pos) * scale / 1024 + Tempo + fix_BB(pos);
 
          if (pos.is_chess960())
              nnue += fix_FRC(pos);
