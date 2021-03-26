@@ -1230,6 +1230,9 @@ moves_loop: // When in check, search starts from here
           if (singularQuietLMR)
               r--;
 
+          if (cutNode && givesCheck && ss->staticEval > alpha + 120)
+              r--;
+
           if (captureOrPromotion)
           {
               // Increase reduction for non-checking captures likely to be bad
