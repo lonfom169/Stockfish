@@ -1083,6 +1083,7 @@ make_v:
 Value Eval::evaluate(const Position& pos) {
 
   Value v;
+  Color us = pos.side_to_move();
 
   if (!Eval::useNNUE)
       v = Evaluation<NO_TRACE>(pos).value();
@@ -1092,8 +1093,9 @@ Value Eval::evaluate(const Position& pos) {
       auto  adjusted_NNUE = [&]()
       {
          int material = pos.non_pawn_material() + 2 * PawnValueMg * pos.count<PAWN>();
+         bool matdiff = (pos.non_pawn_material(us) - pos.non_pawn_material(~us)) > 0;
          int scale =  641
-                    + material / 32
+                    + (material + matdiff * 512) / 32
                     - 4 * pos.rule50_count();
 
          Value nnue = NNUE::evaluate(pos) * scale / 1024 + Tempo;
