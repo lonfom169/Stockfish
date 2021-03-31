@@ -1243,6 +1243,9 @@ moves_loop: // When in check, search starts from here
               if (ttCapture)
                   r++;
 
+              if (rootNode && moveCount > 36 && !improving)
+                  r++;
+
               // Increase reduction at root if failing high
               r += rootNode ? thisThread->failedHighCnt * thisThread->failedHighCnt * moveCount / 512 : 0;
 
