@@ -1217,6 +1217,9 @@ moves_loop: // When in check, search starts from here
               && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if (cutNode && ttValue > alpha + 140)
+              r += alpha / 512;
+
           // More reductions for late moves if position was not in previous PV
           if (   moveCountPruning
               && !formerPv)
