@@ -1217,6 +1217,9 @@ moves_loop: // When in check, search starts from here
               && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if (ss->statScore < 10000 && likelyFailLow)
+              r++;
+
           // More reductions for late moves if position was not in previous PV
           if (   moveCountPruning
               && !formerPv)
