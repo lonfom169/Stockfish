@@ -423,7 +423,7 @@ void Thread::search() {
           failedHighCnt = 0;
           while (true)
           {
-              Depth adjustedDepth = std::max(1, rootDepth - failedHighCnt - searchAgainCounter);
+              Depth adjustedDepth = std::max(1, rootDepth - (rootDepth > 7) * (failedHighCnt - searchAgainCounter));
               bestValue = Stockfish::search<PV>(rootPos, ss, alpha, beta, adjustedDepth, false);
 
               // Bring the best move to the front. It is critical that sorting
