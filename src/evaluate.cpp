@@ -1083,6 +1083,7 @@ make_v:
 Value Eval::evaluate(const Position& pos) {
 
   Value v;
+  Color us = pos.side_to_move();
 
   if (!Eval::useNNUE)
       v = Evaluation<NO_TRACE>(pos).value();
@@ -1091,12 +1092,14 @@ Value Eval::evaluate(const Position& pos) {
       // Scale and shift NNUE for compatibility with search and classical evaluation
       auto  adjusted_NNUE = [&]()
       {
+         Value nnue = NNUE::evaluate(pos);
          int material = pos.non_pawn_material() + 4 * PawnValueMg * pos.count<PAWN>();
          int scale =  580
                     + material / 32
+                    + QueenValueMg * pos.count<QUEEN>(us) / 32 * (nnue > 78)
                     - 4 * pos.rule50_count();
 
-         Value nnue = NNUE::evaluate(pos) * scale / 1024 + Tempo;
+         nnue = nnue * scale / 1024 + Tempo;
 
          if (pos.is_chess960())
              nnue += fix_FRC(pos);
