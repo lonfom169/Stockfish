@@ -608,7 +608,7 @@ namespace {
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning,
          ttCapture, singularQuietLMR;
     Piece movedPiece;
-    int moveCount, captureCount, quietCount;
+    int moveCount, captureCount, quietCount, evalSign;
 
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
@@ -830,6 +830,11 @@ namespace {
     improving =  (ss-2)->staticEval == VALUE_NONE
                ? ss->staticEval > (ss-4)->staticEval || (ss-4)->staticEval == VALUE_NONE
                : ss->staticEval > (ss-2)->staticEval;
+
+    evalSign = eval >= 0 ? 1 : -1;
+
+    if (abs(eval) < 24 && !improving)
+        eval = eval * 5 * evalSign / 6;
 
     // Step 7. Futility pruning: child node (~50 Elo)
     if (   !PvNode
