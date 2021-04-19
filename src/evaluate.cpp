@@ -1039,6 +1039,40 @@ make_v:
   }
 
 
+  Value fix_BN(const Position& pos) {
+
+    constexpr Bitboard Corners =  1ULL << SQ_A1 | 1ULL << SQ_H1 | 1ULL << SQ_A8 | 1ULL << SQ_H8;
+
+    if (!(pos.pieces(KNIGHT) & Corners))
+        return VALUE_ZERO;
+
+    int correction = 0;
+
+    if (pos.piece_on(SQ_A1) == W_KNIGHT)
+        correction += pos.piece_on(SQ_B3) == W_PAWN
+                   || pos.piece_on(SQ_C2) == W_PAWN ? -18
+                                                    : -12;
+
+    if (pos.piece_on(SQ_H1) == W_KNIGHT)
+        correction += pos.piece_on(SQ_G3) == W_PAWN
+                   || pos.piece_on(SQ_F2) == W_PAWN ? -18
+                                                    : -12;
+
+    if (pos.piece_on(SQ_A8) == B_KNIGHT)
+        correction += pos.piece_on(SQ_B6) == B_PAWN
+                   || pos.piece_on(SQ_C7) == B_PAWN ? 18
+                                                    : 12;
+
+    if (pos.piece_on(SQ_H8) == B_KNIGHT)
+        correction += pos.piece_on(SQ_G6) == B_PAWN
+                   || pos.piece_on(SQ_F7) == B_PAWN ? 18
+                                                    : 12;
+
+    return pos.side_to_move() == WHITE ?  Value(correction)
+                                       : -Value(correction);
+  }
+
+
   /// Fisher Random Chess: correction for cornered bishops, to fix chess960 play with NNUE
 
   Value fix_FRC(const Position& pos) {
@@ -1096,7 +1130,7 @@ Value Eval::evaluate(const Position& pos) {
                     + material / 32
                     - 4 * pos.rule50_count();
 
-         Value nnue = NNUE::evaluate(pos) * scale / 1024 + Tempo;
+         Value nnue = NNUE::evaluate(pos) * scale / 1024 + Tempo + fix_BN(pos);
 
          if (pos.is_chess960())
              nnue += fix_FRC(pos);
