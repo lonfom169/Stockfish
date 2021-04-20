@@ -1131,6 +1131,8 @@ Value Eval::evaluate(const Position& pos) {
           v = adjusted_NNUE();
   }
 
+  v += Value(2 * (pos.this_thread()->nodes & 3) - 3);
+
   // Damp down the evaluation linearly when shuffling
   v = v * (100 - pos.rule50_count()) / 100;
 
