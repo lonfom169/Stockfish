@@ -1094,6 +1094,7 @@ Value Eval::evaluate(const Position& pos) {
          int material = pos.non_pawn_material() + 4 * PawnValueMg * pos.count<PAWN>();
          int scale =  580
                     + material / 32
+                    + 32 * pos.side_to_move()
                     - 4 * pos.rule50_count();
 
          Value nnue = NNUE::evaluate(pos) * scale / 1024 + Tempo;
