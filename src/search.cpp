@@ -368,6 +368,8 @@ void Thread::search() {
 
   int searchAgainCounter = 0;
 
+  stableCnt = 0;
+
   // Iterative deepening loop until requested to stop or the target depth is reached
   while (   ++rootDepth < MAX_PLY
          && !Threads.stop
@@ -487,6 +489,11 @@ void Thread::search() {
          lastBestMove = rootMoves[0].pv[0];
          lastBestMoveDepth = rootDepth;
       }
+
+      if (rootMoves[0].score == rootMoves[0].previousScore)
+          stableCnt++;
+      else
+          stableCnt = 0;
 
       // Have we found a "mate in x"?
       if (   Limits.mate
