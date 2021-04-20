@@ -1131,6 +1131,10 @@ Value Eval::evaluate(const Position& pos) {
           v = adjusted_NNUE();
   }
 
+  int adjust = 962 + 2 * pos.this_thread()->selDepth;
+
+  v = v * adjust / 1024;
+
   // Damp down the evaluation linearly when shuffling
   v = v * (100 - pos.rule50_count()) / 100;
 
