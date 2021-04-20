@@ -1101,6 +1101,8 @@ Value Eval::evaluate(const Position& pos) {
          if (pos.is_chess960())
              nnue += fix_FRC(pos);
 
+         nnue += Value(2 * (pos.this_thread()->nodes & 3) - 3);
+
          return nnue;
       };
 
