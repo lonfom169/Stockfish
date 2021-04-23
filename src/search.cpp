@@ -1203,6 +1203,9 @@ moves_loop: // When in check, search starts from here
               && !likelyFailLow)
               r -= 2;
 
+          if (rootNode && !pos.non_pawn_material())
+              r--;
+
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if (   (rootNode || !PvNode)
               && thisThread->rootDepth > 10
