@@ -1225,6 +1225,9 @@ moves_loop: // When in check, search starts from here
           if (singularQuietLMR)
               r--;
 
+          if (rootNode && pos.has_repeated())
+              r -= 2;
+
           if (captureOrPromotion)
           {
               // Increase reduction for non-checking captures likely to be bad
