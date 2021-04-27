@@ -1130,7 +1130,7 @@ moves_loop: // When in check, search starts from here
           {
               extension = 1;
               singularQuietLMR = !ttCapture;
-              if (!PvNode && value < singularBeta - 140)
+              if (!PvNode && (value < singularBeta - 140 || (captureOrPromotion && givesCheck && !pos.side_to_move())))
                   extension = 2;
           }
 
