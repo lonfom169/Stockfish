@@ -1217,6 +1217,9 @@ moves_loop: // When in check, search starts from here
               && !formerPv)
               r++;
 
+          if (MoveList<LEGAL>(pos).size() == 1)
+              r++;
+
           // Decrease reduction if opponent's move count is high (~5 Elo)
           if ((ss-1)->moveCount > 13)
               r--;
