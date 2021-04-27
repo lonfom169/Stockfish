@@ -1091,9 +1091,16 @@ Value Eval::evaluate(const Position& pos) {
       // Scale and shift NNUE for compatibility with search and classical evaluation
       auto  adjusted_NNUE = [&]()
       {
+         Color us = pos.side_to_move();
+
+         Pawns::Entry* pe;
+         pe = Pawns::probe(pos);
+
          int material = pos.non_pawn_material() + 4 * PawnValueMg * pos.count<PAWN>();
+         int spaceWeight = pos.count<ALL_PIECES>(us) - 3 + std::min(pe->blocked_count(), 9);
          int scale =  580
                     + material / 32
+                    + 2 * spaceWeight
                     - 4 * pos.rule50_count();
 
          Value nnue = NNUE::evaluate(pos) * scale / 1024 + Tempo;
