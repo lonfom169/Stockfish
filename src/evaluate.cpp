@@ -1122,12 +1122,13 @@ Value Eval::evaluate(const Position& pos) {
       // If the classical eval is small and imbalance large, use NNUE nevertheless.
       // For the case of opposite colored bishops, switch to NNUE eval with small
       // probability if the classical eval is less than the threshold.
-      if (    largePsq
+      if (   (pos.king_danger() && pos.this_thread()->nodes & 1)
+          || (largePsq
           && !lowPieceEndgame
           && (   abs(v) * 16 < NNUEThreshold2 * r50
               || (   pos.opposite_bishops()
                   && abs(v) * 16 < (NNUEThreshold1 + pos.non_pawn_material() / 64) * r50
-                  && !(pos.this_thread()->nodes & 0xB))))
+                  && !(pos.this_thread()->nodes & 0xB)))))
           v = adjusted_NNUE();
   }
 
