@@ -1120,19 +1120,26 @@ moves_loop: // When in check, search starts from here
           &&  tte->depth() >= depth - 3)
       {
           Value singularBeta = ttValue - ((formerPv + 4) * depth) / 2;
+          Value singularBeta2 = ttValue - ((formerPv + 2) * depth) / 2;
           Depth singularDepth = (depth - 1 + 3 * formerPv) / 2;
 
           ss->excludedMove = move;
-          value = search<NonPV>(pos, ss, singularBeta - 1, singularBeta, singularDepth, cutNode);
+
+          if (PvNode)
+              value = search<NonPV>(pos, ss, singularBeta - 1, singularBeta, singularDepth, cutNode);
+          else
+              value = search<NonPV>(pos, ss, singularBeta2 - 1, singularBeta2, singularDepth, cutNode);
+
           ss->excludedMove = MOVE_NONE;
 
           if (value < singularBeta)
           {
               extension = 1;
               singularQuietLMR = !ttCapture;
-              if (!PvNode && value < singularBeta - 140)
-                  extension = 2;
           }
+
+          if (!PvNode && value < singularBeta2 - 140)
+              extension = 2;
 
           // Multi-cut pruning
           // Our ttMove is assumed to fail high, and now we failed high also on a reduced
