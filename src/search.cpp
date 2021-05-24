@@ -1143,6 +1143,9 @@ moves_loop: // When in check, search starts from here
               && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if (depth < 8 && ss->staticEval < (ss-2)->staticEval - 20)
+              r++;
+
           // Decrease reduction if opponent's move count is high (~1 Elo)
           if ((ss-1)->moveCount > 13)
               r--;
