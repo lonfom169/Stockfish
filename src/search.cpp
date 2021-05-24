@@ -530,6 +530,7 @@ namespace {
     constexpr bool PvNode = NT == PV;
     const bool rootNode = PvNode && ss->ply == 0;
     const Depth maxNextDepth = rootNode ? depth : depth + 1;
+    bool drawLMR = false;
 
     // Check if we have an upcoming move which draws by repetition, or
     // if the opponent had an alternative move earlier to this position.
@@ -539,6 +540,7 @@ namespace {
         && pos.has_game_cycle(ss->ply))
     {
         alpha = value_draw(pos.this_thread());
+        drawLMR = true;
         if (alpha >= beta)
             return alpha;
     }
@@ -1120,6 +1122,7 @@ moves_loop: // When in check, search starts from here
       // cases where we extend a son if it has good chances to be "interesting".
       if (    depth >= 3
           &&  moveCount > 1 + 2 * rootNode
+          && !drawLMR
           && (  !captureOrPromotion
               || cutNode
               || (!PvNode && !formerPv))
