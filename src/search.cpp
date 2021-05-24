@@ -1069,7 +1069,7 @@ moves_loop: // When in check, search starts from here
           value = search<NonPV>(pos, ss, singularBeta - 1, singularBeta, singularDepth, cutNode);
           ss->excludedMove = MOVE_NONE;
 
-          if (value < singularBeta)
+          if (value < ttValue)
           {
               extension = 1;
               singularQuietLMR = !ttCapture;
