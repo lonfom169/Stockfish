@@ -1121,7 +1121,7 @@ moves_loop: // When in check, search starts from here
       // been searched. In general we would like to reduce them, but there are many
       // cases where we extend a son if it has good chances to be "interesting".
       if (    depth >= 3
-          &&  moveCount > 1 + 2 * rootNode
+          &&  moveCount > 1
           && (  !captureOrPromotion
               || (cutNode && (ss-1)->moveCount > 1)
               || !ss->ttPv)
@@ -1146,6 +1146,10 @@ moves_loop: // When in check, search starts from here
           if (   (rootNode || !PvNode)
               && thisThread->bestMoveChanges <= 2)
               r++;
+
+          if (   rootNode
+              && moveCount < 7)
+              r--;
 
           // Decrease reduction if opponent's move count is high (~1 Elo)
           if ((ss-1)->moveCount > 13)
