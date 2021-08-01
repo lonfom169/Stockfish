@@ -1182,6 +1182,9 @@ moves_loop: // When in check, search starts here
           // If the son is reduced and fails high it will be re-searched at full depth
           doFullDepthSearch = value > alpha && d < newDepth;
           didLMR = true;
+
+          if (!PvNode && value > alpha + 52 && !doubleExtension)
+              newDepth++;
       }
       else
       {
