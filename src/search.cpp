@@ -369,6 +369,7 @@ void Thread::search() {
           // high/low, re-search with a bigger window until we don't fail
           // high/low anymore.
           int failedHighCnt = 0;
+          failedLowCnt = 0;
           while (true)
           {
               Depth adjustedDepth = std::max(1, rootDepth - failedHighCnt - searchAgainCounter);
@@ -404,6 +405,7 @@ void Thread::search() {
                   alpha = std::max(bestValue - delta, -VALUE_INFINITE);
 
                   failedHighCnt = 0;
+                  ++failedLowCnt;
                   if (mainThread)
                       mainThread->stopOnPonderhit = false;
               }
@@ -411,6 +413,7 @@ void Thread::search() {
               {
                   beta = std::min(bestValue + delta, VALUE_INFINITE);
                   ++failedHighCnt;
+                  failedLowCnt = 0;
               }
               else
                   break;
@@ -1159,6 +1162,11 @@ moves_loop: // When in check, search starts here
           if (   (rootNode || !PvNode)
               && thisThread->bestMoveChanges <= 2)
               r++;
+
+          if (   PvNode
+              && ss->ply < 4
+              && thisThread->failedLowCnt > 2)
+              r--;
 
           // Decrease reduction if opponent's move count is high (~1 Elo)
           if ((ss-1)->moveCount > 13)
