@@ -369,6 +369,7 @@ void Thread::search() {
           // high/low, re-search with a bigger window until we don't fail
           // high/low anymore.
           int failedHighCnt = 0;
+          failedLowCnt = 0;
           while (true)
           {
               Depth adjustedDepth = std::max(1, rootDepth - failedHighCnt - searchAgainCounter);
@@ -404,6 +405,7 @@ void Thread::search() {
                   alpha = std::max(bestValue - delta, -VALUE_INFINITE);
 
                   failedHighCnt = 0;
+                  ++failedLowCnt;
                   if (mainThread)
                       mainThread->stopOnPonderhit = false;
               }
@@ -411,6 +413,7 @@ void Thread::search() {
               {
                   beta = std::min(bestValue + delta, VALUE_INFINITE);
                   ++failedHighCnt;
+                  failedLowCnt = 0;
               }
               else
                   break;
@@ -1057,7 +1060,7 @@ moves_loop: // When in check, search starts here
           && (tte->bound() & BOUND_LOWER)
           &&  tte->depth() >= depth - 3)
       {
-          Value singularBeta = ttValue - 2 * depth;
+          Value singularBeta = ttValue - 3 * depth;
           Depth singularDepth = (depth - 1) / 2;
 
           ss->excludedMove = move;
@@ -1143,7 +1146,7 @@ moves_loop: // When in check, search starts here
           Depth r = reduction(improving, depth, moveCount);
 
           if (PvNode)
-              r--;
+              r -= 1 + (thisThread->failedLowCnt > 2);
 
           // Decrease reduction if the ttHit running average is large (~0 Elo)
           if (thisThread->ttHitAverage > 537 * TtHitAverageResolution * TtHitAverageWindow / 1024)
