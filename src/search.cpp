@@ -589,7 +589,7 @@ namespace {
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning,
-         ttCapture, singularQuietLMR, noLMRExtension;
+         ttCapture, singularQuietLMR, noLMRExtension, noExt;
     Piece movedPiece;
     int moveCount, captureCount, quietCount;
 
@@ -1157,6 +1157,9 @@ moves_loop: // When in check, search starts here
                && (*contHist[0])[movedPiece][to_sq(move)] >= 10000)
           extension = 1;
 
+      else
+          noExt = true;
+
       // Add extension to new depth
       newDepth += extension;
       ss->doubleExtensions = (ss-1)->doubleExtensions + (extension == 2);
@@ -1261,7 +1264,8 @@ moves_loop: // When in check, search starts here
       // Step 17. Full depth search when LMR is skipped or fails high
       if (doFullDepthSearch)
       {
-          value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
+          value = noExt ? -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, false)
+                        : -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
 
           // If the move passed LMR update its stats
           if (didLMR && !captureOrPromotion)
