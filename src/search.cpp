@@ -1205,6 +1205,12 @@ moves_loop: // When in check, search starts here
               && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if (   !bool(extension)
+              && !captureOrPromotion
+              && !improving
+              && depth > (ss-2)->depth + 4)
+              r++;
+
           // Decrease reduction if opponent's move count is high (~1 Elo)
           if ((ss-1)->moveCount > 13)
               r--;
