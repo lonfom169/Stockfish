@@ -587,7 +587,7 @@ namespace {
     Move ttMove, move, excludedMove, bestMove;
     Depth extension, newDepth;
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
-    bool givesCheck, improving, didLMR, priorCapture;
+    bool givesCheck, improving, didLMR, didSE, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning,
          ttCapture, singularQuietLMR, noLMRExtension;
     Piece movedPiece;
@@ -600,6 +600,7 @@ namespace {
     moveCount          = captureCount = quietCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
+    didSE              = ss->didSE;
 
     // Check for the available remaining time
     if (thisThread == Threads.main())
@@ -1098,7 +1099,9 @@ moves_loop: // When in check, search starts here
           Depth singularDepth = (depth - 1) / 2;
 
           ss->excludedMove = move;
+          ss->didSE = true;
           value = search<NonPV>(pos, ss, singularBeta - 1, singularBeta, singularDepth, cutNode);
+          ss->didSE = false;
           ss->excludedMove = MOVE_NONE;
 
           if (value < singularBeta)
@@ -1130,7 +1133,9 @@ moves_loop: // When in check, search starts here
           else if (ttValue >= beta)
           {
               ss->excludedMove = move;
+              ss->didSE = true;
               value = search<NonPV>(pos, ss, beta - 1, beta, (depth + 3) / 2, cutNode);
+              ss->didSE = false;
               ss->excludedMove = MOVE_NONE;
 
               if (value >= beta)
@@ -1179,6 +1184,7 @@ moves_loop: // When in check, search starts here
       // been searched. In general we would like to reduce them, but there are many
       // cases where we extend a son if it has good chances to be "interesting".
       if (    depth >= 3
+          &&  !didSE
           &&  moveCount > 1 + 2 * rootNode
           && (  !captureOrPromotion
               || (cutNode && (ss-1)->moveCount > 1)
