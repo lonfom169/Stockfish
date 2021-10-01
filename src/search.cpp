@@ -442,7 +442,7 @@ void Thread::search() {
               else
                   break;
 
-              delta += delta / 4 + 5;
+              delta += delta / 4 + 5 + std::max(Value(0), (bestValue - beta / 2) / 16);
 
               assert(alpha >= -VALUE_INFINITE && beta <= VALUE_INFINITE);
           }
