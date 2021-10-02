@@ -1134,7 +1134,11 @@ moves_loop: // When in check, search starts here
               ss->excludedMove = MOVE_NONE;
 
               if (value >= beta)
+              {
                   extension = -2;
+                  if (value >= beta + 140)
+                      extension = -4;
+              }
           }
       }
 
