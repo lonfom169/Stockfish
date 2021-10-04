@@ -1246,7 +1246,7 @@ moves_loop: // When in check, search starts here
 
           // Range reductions (~3 Elo)
           if (ss->staticEval - value < 30 && depth > 7)
-              rangeReduction++;
+              rangeReduction += 1 + 2 * (ss->staticEval - value < -110);
 
           // If the son is reduced and fails high it will be re-searched at full depth
           doFullDepthSearch = value > alpha && d < newDepth;
