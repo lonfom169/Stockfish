@@ -395,7 +395,7 @@ void Thread::search() {
           // Start with a small aspiration window and, in the case of a fail
           // high/low, re-search with a bigger window until we don't fail
           // high/low anymore.
-          int failedHighCnt = 0;
+          failedHighCnt = 0;
           while (true)
           {
               Depth adjustedDepth = std::max(1, rootDepth - failedHighCnt - searchAgainCounter);
@@ -1188,6 +1188,10 @@ moves_loop: // When in check, search starts here
           Depth r = reduction(improving, depth, moveCount, rangeReduction > 2);
 
           if (PvNode)
+              r--;
+
+          if (   (captureOrPromotion || givesCheck)
+              && thisThread->failedHighCnt == 1)
               r--;
 
           // Decrease reduction if the ttHit running average is large (~0 Elo)
