@@ -1209,6 +1209,9 @@ moves_loop: // When in check, search starts here
           if ((ss-1)->moveCount > 13)
               r--;
 
+          if ((ss-1)->moveCount < 4)
+              r++;
+
           // Decrease reduction if ttMove has been singularly extended (~1 Elo)
           if (singularQuietLMR)
               r--;
