@@ -80,7 +80,7 @@ namespace {
 
   // History and stats update bonus, based on depth
   int stat_bonus(Depth d) {
-    return std::min((6 * d + 229) * d - 215 , 2000);
+    return std::min((6 * d + 239) * d - 215 , 2000);
   }
 
   // Add a small random component to draw evaluations to avoid 3-fold blindness
@@ -588,7 +588,7 @@ namespace {
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning,
-         ttCapture, singularQuietLMR, noLMRExtension;
+         ttCapture, singularQuietLMR;
     Piece movedPiece;
     int moveCount, captureCount, quietCount, bestMoveCount, improvement;
 
@@ -634,7 +634,6 @@ namespace {
     (ss+1)->ttPv         = false;
     (ss+1)->excludedMove = bestMove = MOVE_NONE;
     (ss+2)->killers[0]   = (ss+2)->killers[1] = MOVE_NONE;
-    ss->doubleExtensions = (ss-1)->doubleExtensions;
     ss->depth            = depth;
     Square prevSq        = to_sq((ss-1)->currentMove);
 
@@ -893,19 +892,16 @@ namespace {
         assert(probCutBeta < VALUE_INFINITE);
 
         MovePicker mp(pos, ttMove, probCutBeta - ss->staticEval, &captureHistory);
-        int probCutCount = 0;
         bool ttPv = ss->ttPv;
         ss->ttPv = false;
 
-        while (   (move = mp.next_move()) != MOVE_NONE
-               && probCutCount < 2 + 2 * cutNode)
+        while (   (move = mp.next_move()) != MOVE_NONE)
             if (move != excludedMove && pos.legal(move))
             {
                 assert(pos.capture_or_promotion(move));
                 assert(depth >= 5);
 
                 captureOrPromotion = true;
-                probCutCount++;
 
                 ss->currentMove = move;
                 ss->continuationHistory = &thisThread->continuationHistory[ss->inCheck]
@@ -941,7 +937,7 @@ namespace {
 
     // Step 10. If the position is not in TT, decrease depth by 2 or 1 depending on node type
     if (   PvNode
-        && depth >= 6
+        && depth >= 7
         && !ttMove)
         depth -= 2;
 
@@ -984,7 +980,7 @@ moves_loop: // When in check, search starts here
                                       ss->ply);
 
     value = bestValue;
-    singularQuietLMR = moveCountPruning = noLMRExtension = false;
+    singularQuietLMR = moveCountPruning = false;
 
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal or greater than the current depth, and the result of this search was a fail low.
@@ -1048,7 +1044,7 @@ moves_loop: // When in check, search starts here
               // Capture history based pruning when the move doesn't give check
               if (   !givesCheck
                   && lmrDepth < 1
-                  && captureHistory[movedPiece][to_sq(move)][type_of(pos.piece_on(to_sq(move)))] < 0)
+                  && captureHistory[movedPiece][to_sq(move)][type_of(pos.piece_on(to_sq(move)))] < -3000)
                   continue;
 
               // SEE based pruning
@@ -1084,7 +1080,7 @@ moves_loop: // When in check, search starts here
       // a reduced search on all the other moves but the ttMove and if the
       // result is lower than ttValue minus a margin, then we will extend the ttMove.
       if (   !rootNode
-          &&  depth >= 7
+          &&  depth >= 8
           &&  move == ttMove
           && !excludedMove // Avoid recursive singular search
        /* &&  ttValue != VALUE_NONE Already implicit in the next condition */
@@ -1104,14 +1100,9 @@ moves_loop: // When in check, search starts here
               extension = 1;
               singularQuietLMR = !ttCapture;
 
-              // Avoid search explosion by limiting the number of double extensions
               if (   !PvNode
-                  && value < singularBeta - 75
-                  && ss->doubleExtensions <= 6)
-              {
+                  && value < singularBeta - 75)
                   extension = 2;
-                  noLMRExtension = true;
-              }
           }
 
           // Multi-cut pruning
@@ -1148,7 +1139,6 @@ moves_loop: // When in check, search starts here
 
       // Add extension to new depth
       newDepth += extension;
-      ss->doubleExtensions = (ss-1)->doubleExtensions + (extension == 2);
 
       // Speculative prefetch as early as possible
       prefetch(TT.first_entry(pos.key_after(move)));
@@ -1178,7 +1168,7 @@ moves_loop: // When in check, search starts here
 
           // Decrease reduction if on the PV (~2 Elo)
           if (   PvNode
-              && bestMoveCount <= 3)
+              && bestMoveCount <= 2)
               r--;
 
           // Decrease reduction if position is or has been on the PV
@@ -1221,7 +1211,6 @@ moves_loop: // When in check, search starts here
           // are really negative and movecount is low, we allow this move to be searched
           // deeper than the first move (this may lead to hidden double extensions).
           int deeper =   r >= -1                   ? 0
-                       : noLMRExtension            ? 0
                        : moveCount <= 3 && r <= -3 ? 2
                        : moveCount <= 5            ? 1
                        : PvNode && depth > 6       ? 1
