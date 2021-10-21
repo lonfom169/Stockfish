@@ -599,6 +599,7 @@ namespace {
     moveCount          = bestMoveCount = captureCount = quietCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
+    ss->bestValue      = VALUE_NONE;
 
     // Check for the available remaining time
     if (thisThread == Threads.main())
@@ -1182,6 +1183,9 @@ moves_loop: // When in check, search starts here
               && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if ((ss-2)->bestValue > 500 && ss->staticEval > (ss-2)->bestValue)
+              r++;
+
           // Decrease reduction if opponent's move count is high (~1 Elo)
           if ((ss-1)->moveCount > 13)
               r--;
@@ -1389,6 +1393,8 @@ moves_loop: // When in check, search starts here
                   depth, bestMove, ss->staticEval);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
+
+    ss->bestValue = bestValue;
 
     return bestValue;
   }
