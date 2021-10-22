@@ -815,8 +815,7 @@ namespace {
     // The depth condition is important for mate finding.
     if (   !PvNode
         &&  depth < 9
-        &&  eval - futility_margin(depth, improving) >= beta
-        &&  eval < VALUE_KNOWN_WIN) // Do not return unproven wins
+        &&  eval - futility_margin(depth, improving) >= beta)
         return eval;
 
     // Step 8. Null move search with verification search (~40 Elo)
