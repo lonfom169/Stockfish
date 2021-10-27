@@ -1069,6 +1069,11 @@ moves_loop: // When in check, search starts here
           }
       }
 
+      ss->continuationHistory = &thisThread->continuationHistory[ss->inCheck]
+                                                                [captureOrPromotion]
+                                                                [movedPiece]
+                                                                [to_sq(move)];
+
       // Step 14. Extensions (~75 Elo)
 
       // Singular extension search (~70 Elo). If all moves but one fail low on a
@@ -1145,10 +1150,6 @@ moves_loop: // When in check, search starts here
 
       // Update the current move (this must be done after singular extension search)
       ss->currentMove = move;
-      ss->continuationHistory = &thisThread->continuationHistory[ss->inCheck]
-                                                                [captureOrPromotion]
-                                                                [movedPiece]
-                                                                [to_sq(move)];
 
       // Step 15. Make the move
       pos.do_move(move, st, givesCheck);
