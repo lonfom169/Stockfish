@@ -310,6 +310,8 @@ void Thread::search() {
   std::copy(&lowPlyHistory[2][0], &lowPlyHistory.back().back() + 1, &lowPlyHistory[0][0]);
   std::fill(&lowPlyHistory[MAX_LPH - 2][0], &lowPlyHistory.back().back() + 1, 0);
 
+  rootPiecesCount = rootPos.count<ALL_PIECES>();
+
   size_t multiPV = size_t(Options["MultiPV"]);
 
   // Pick integer skill levels, but non-deterministically round up or down
@@ -599,6 +601,7 @@ namespace {
     moveCount          = bestMoveCount = captureCount = quietCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
+    ss->bestValue      = VALUE_NONE;
 
     // Check for the available remaining time
     if (thisThread == Threads.main())
@@ -1170,6 +1173,11 @@ moves_loop: // When in check, search starts here
               && bestMoveCount <= 3)
               r--;
 
+          if (   (ss-2)->bestValue != VALUE_NONE
+              && (ss-2)->bestValue > beta + 340
+              && thisThread->rootPiecesCount - pos.count<ALL_PIECES>() > 6)
+              r++;
+
           // Decrease reduction if position is or has been on the PV
           // and node is not likely to fail low. (~3 Elo)
           if (   ss->ttPv
@@ -1387,6 +1395,8 @@ moves_loop: // When in check, search starts here
                   depth, bestMove, ss->staticEval);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
+
+    ss->bestValue = bestValue;
 
     return bestValue;
   }
