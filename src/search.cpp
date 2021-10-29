@@ -1104,6 +1104,9 @@ moves_loop: // When in check, search starts here
                   extension = 2;
           }
 
+          else if (PvNode && value < singularBeta + 78)
+              extension = 1;
+
           // Multi-cut pruning
           // Our ttMove is assumed to fail high, and now we failed high also on a reduced
           // search without the ttMove. So we assume this expected Cut-node is not singular,
