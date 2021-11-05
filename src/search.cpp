@@ -1184,6 +1184,11 @@ moves_loop: // When in check, search starts here
               && thisThread->bestMoveChanges <= 2)
               r++;
 
+          if (   rootNode
+              && ss->staticEval < thisThread->rootMoves[0].score - 1200
+              && bestMove == MOVE_NONE)
+              r++;
+
           // Decrease reduction if opponent's move count is high (~1 Elo)
           if ((ss-1)->moveCount > 13)
               r--;
