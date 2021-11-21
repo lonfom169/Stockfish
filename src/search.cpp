@@ -562,7 +562,7 @@ namespace {
     {
         alpha = value_draw(pos.this_thread());
         if (alpha >= beta)
-            return alpha;
+            depth = depth > 2 ? 2 : depth;
     }
 
     // Dive into quiescence search when the depth reaches zero
