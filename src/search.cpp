@@ -590,7 +590,7 @@ namespace {
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning,
-         ttCapture, singularQuietLMR;
+         ttCapture, singularQuietLMR, pvFailLowLMR;
     Piece movedPiece;
     int moveCount, captureCount, quietCount, bestMoveCount, improvement;
 
@@ -601,6 +601,7 @@ namespace {
     moveCount          = bestMoveCount = captureCount = quietCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
+    pvFailLowLMR       = false;
 
     // Check for the available remaining time
     if (thisThread == Threads.main())
@@ -675,39 +676,44 @@ namespace {
         thisThread->lowPlyHistory[ss->ply - 1][from_to((ss-1)->currentMove)] << stat_bonus(depth - 5);
 
     // At non-PV nodes we check for an early TT cutoff
-    if (  !PvNode
-        && ss->ttHit
+    if (   ss->ttHit
         && tte->depth() > depth - (thisThread->id() % 2 == 1)
         && ttValue != VALUE_NONE // Possible in case of TT access race
         && (ttValue >= beta ? (tte->bound() & BOUND_LOWER)
                             : (tte->bound() & BOUND_UPPER)))
     {
-        // If ttMove is quiet, update move sorting heuristics on TT hit
-        if (ttMove)
+        if (PvNode && ttValue < beta - 40)
+            pvFailLowLMR = true;
+
+        if (!PvNode)
         {
-            if (ttValue >= beta)
+            // If ttMove is quiet, update move sorting heuristics on TT hit
+            if (ttMove)
             {
-                // Bonus for a quiet ttMove that fails high
-                if (!ttCapture)
-                    update_quiet_stats(pos, ss, ttMove, stat_bonus(depth), depth);
+                if (ttValue >= beta)
+                {
+                    // Bonus for a quiet ttMove that fails high
+                    if (!ttCapture)
+                        update_quiet_stats(pos, ss, ttMove, stat_bonus(depth), depth);
 
-                // Extra penalty for early quiet moves of the previous ply
-                if ((ss-1)->moveCount <= 2 && !priorCapture)
-                    update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, -stat_bonus(depth + 1));
+                    // Extra penalty for early quiet moves of the previous ply
+                    if ((ss-1)->moveCount <= 2 && !priorCapture)
+                        update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, -stat_bonus(depth + 1));
+                }
+                // Penalty for a quiet ttMove that fails low
+                else if (!ttCapture)
+                {
+                    int penalty = -stat_bonus(depth);
+                    thisThread->mainHistory[us][from_to(ttMove)] << penalty;
+                    update_continuation_histories(ss, pos.moved_piece(ttMove), to_sq(ttMove), penalty);
+                }
             }
-            // Penalty for a quiet ttMove that fails low
-            else if (!ttCapture)
-            {
-                int penalty = -stat_bonus(depth);
-                thisThread->mainHistory[us][from_to(ttMove)] << penalty;
-                update_continuation_histories(ss, pos.moved_piece(ttMove), to_sq(ttMove), penalty);
-            }
+
+            // Partial workaround for the graph history interaction problem
+            // For high rule50 counts don't produce transposition table cutoffs.
+            if (pos.rule50_count() < 90)
+                return ttValue;
         }
-
-        // Partial workaround for the graph history interaction problem
-        // For high rule50 counts don't produce transposition table cutoffs.
-        if (pos.rule50_count() < 90)
-            return ttValue;
     }
 
     // Step 5. Tablebases probe
@@ -1176,6 +1182,7 @@ moves_loop: // When in check, search starts here
           // Decrease reduction at some PvNodes (~2 Elo)
           if (   PvNode
               && bestMoveCount <= 3
+              && !pvFailLowLMR
               && beta - alpha >= thisThread->rootDelta / 4)
               r--;
 
