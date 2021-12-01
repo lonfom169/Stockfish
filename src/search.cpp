@@ -1146,6 +1146,7 @@ moves_loop: // When in check, search starts here
 
       // Add extension to new depth
       newDepth += extension;
+      ss->extensions = extension;
       ss->doubleExtensions = (ss-1)->doubleExtensions + (extension == 2);
 
       // Speculative prefetch as early as possible
@@ -1188,6 +1189,15 @@ moves_loop: // When in check, search starts here
           // Increase reduction at root and non-PV nodes when the best move does not change frequently
           if (   (rootNode || !PvNode)
               && thisThread->bestMoveChanges <= 2)
+              r++;
+
+          if (   extension
+              && extension
+              +  (ss-1)->extensions
+              +  (ss-2)->extensions
+              +  (ss-3)->extensions
+              +  (ss-4)->extensions
+              +  (ss-5)->extensions > 4)
               r++;
 
           // Decrease reduction if opponent's move count is high (~1 Elo)
