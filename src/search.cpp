@@ -939,12 +939,14 @@ namespace {
     // Step 10. If the position is not in TT, decrease depth by 2 or 1 depending on node type
     if (   PvNode
         && depth >= 6
-        && !ttMove)
+        && !ttMove
+        && ss->lmrSearch)
         depth -= 2;
 
     if (   cutNode
         && depth >= 9
-        && !ttMove)
+        && !ttMove
+        && ss->lmrSearch)
         depth--;
 
 moves_loop: // When in check, search starts here
@@ -1226,7 +1228,9 @@ moves_loop: // When in check, search starts here
 
           Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
 
+          (ss+1)->lmrSearch = true;
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
+          (ss+1)->lmrSearch = false;
 
           // Range reductions (~3 Elo)
           if (ss->staticEval - value < 30 && depth > 7)
