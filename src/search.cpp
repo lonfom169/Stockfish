@@ -1215,6 +1215,9 @@ moves_loop: // When in check, search starts here
           // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
           r -= ss->statScore / 14721;
 
+          int maxReduction =   singularQuietLMR ? 3
+                             :                    100;
+
           // In general we want to cap the LMR depth search at newDepth. But if reductions
           // are really negative and movecount is low, we allow this move to be searched
           // deeper than the first move (this may lead to hidden double extensions).
@@ -1224,7 +1227,7 @@ moves_loop: // When in check, search starts here
                        : cutNode && moveCount <= 7 ? 1
                        :                             0;
 
-          Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
+          Depth d = std::clamp(newDepth - std::min(r, maxReduction), 1, newDepth + deeper);
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
 
