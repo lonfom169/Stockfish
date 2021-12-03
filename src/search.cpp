@@ -794,7 +794,7 @@ namespace {
         ss->staticEval = eval = evaluate(pos);
 
         // Save static evaluation into transposition table
-        if (!excludedMove)
+        if (!excludedMove && !ss->lmrSearch)
             tte->save(posKey, VALUE_NONE, ss->ttPv, BOUND_NONE, DEPTH_NONE, MOVE_NONE, eval);
     }
 
@@ -1228,7 +1228,9 @@ moves_loop: // When in check, search starts here
 
           Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
 
+          (ss+1)->lmrSearch = true;
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
+          (ss+1)->lmrSearch = false;
 
           // Range reductions (~3 Elo)
           if (ss->staticEval - value < 30 && depth > 7)
