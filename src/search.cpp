@@ -141,6 +141,7 @@ namespace {
   Value value_from_tt(Value v, int ply, int r50c);
   void update_pv(Move* pv, Move move, Move* childPv);
   void update_continuation_histories(Stack* ss, Piece pc, Square to, int bonus);
+  void update_killers(Stack* ss, Move move);
   void update_quiet_stats(const Position& pos, Stack* ss, Move move, int bonus, int depth);
   void update_all_stats(const Position& pos, Stack* ss, Move bestMove, Value bestValue, Value beta, Square prevSq,
                         Move* quietsSearched, int quietCount, Move* capturesSearched, int captureCount, Depth depth);
@@ -687,6 +688,8 @@ namespace {
         {
             if (ttValue >= beta)
             {
+                update_killers(ss, ttMove);
+
                 // Bonus for a quiet ttMove that fails high
                 if (!ttCapture)
                     update_quiet_stats(pos, ss, ttMove, stat_bonus(depth), depth);
@@ -1700,6 +1703,8 @@ moves_loop: // When in check, search starts here
     bonus2 = bestValue > beta + PawnValueMg ? bonus1               // larger bonus
                                             : stat_bonus(depth);   // smaller bonus
 
+    update_killers(ss, bestMove);
+
     if (!pos.capture_or_promotion(bestMove))
     {
         // Increase stats for the best move in case it was a quiet move
@@ -1748,9 +1753,7 @@ moves_loop: // When in check, search starts here
   }
 
 
-  // update_quiet_stats() updates move sorting heuristics
-
-  void update_quiet_stats(const Position& pos, Stack* ss, Move move, int bonus, int depth) {
+  void update_killers(Stack* ss, Move move) {
 
     // Update killers
     if (ss->killers[0] != move)
@@ -1758,6 +1761,12 @@ moves_loop: // When in check, search starts here
         ss->killers[1] = ss->killers[0];
         ss->killers[0] = move;
     }
+  }
+
+
+  // update_quiet_stats() updates move sorting heuristics
+
+  void update_quiet_stats(const Position& pos, Stack* ss, Move move, int bonus, int depth) {
 
     Color us = pos.side_to_move();
     Thread* thisThread = pos.this_thread();
