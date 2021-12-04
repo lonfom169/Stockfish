@@ -1171,6 +1171,7 @@ moves_loop: // When in check, search starts here
           &&  moveCount > 1 + 2 * rootNode
           && (   !ss->ttPv
               || !captureOrPromotion
+              || captureHistory[movedPiece][to_sq(move)][type_of(pos.piece_on(to_sq(move)))] < -2400
               || (cutNode && (ss-1)->moveCount > 1)))
       {
           Depth r = reduction(improving, depth, moveCount, rangeReduction > 2);
