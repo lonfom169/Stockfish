@@ -1187,6 +1187,14 @@ moves_loop: // When in check, search starts here
               && !likelyFailLow)
               r -= 2;
 
+          if (rootNode)
+          {
+              RootMove& rm = *std::find(thisThread->rootMoves.begin(),
+                                        thisThread->rootMoves.end(), move);
+              if (abs(thisThread->rootMoves[0].score - rm.averageScore) < 55)
+                  r--;
+          }
+
           // Increase reduction at non-PV nodes when the best move does not change frequently
           if (  !PvNode
               && thisThread->bestMoveChanges <= 2)
