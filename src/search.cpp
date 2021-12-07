@@ -992,6 +992,10 @@ moves_loop: // When in check, search starts here
                          && (tte->bound() & BOUND_UPPER)
                          && tte->depth() >= depth;
 
+    bool reducedTtm =    ttMove
+                      && tte->depth() < depth
+                      && depth < (ss-1)->depth - 1;
+
     // Step 12. Loop through all pseudo-legal moves until no moves remain
     // or a beta cutoff occurs.
     while ((move = mp.next_move(moveCountPruning)) != MOVE_NONE)
@@ -1098,7 +1102,7 @@ moves_loop: // When in check, search starts here
           &&  tte->depth() >= depth - 3)
       {
           Value singularBeta = ttValue - 3 * depth;
-          Depth singularDepth = (depth - 1) / 2;
+          Depth singularDepth = (depth - 1 + 6 * reducedTtm) / 2;
 
           ss->excludedMove = move;
           value = search<NonPV>(pos, ss, singularBeta - 1, singularBeta, singularDepth, cutNode);
@@ -1126,7 +1130,7 @@ moves_loop: // When in check, search starts here
 
           // If the eval of ttMove is greater than beta, we reduce it (negative extension)
           else if (ttValue >= beta)
-              extension = -2;
+              extension = -2 - 2 * reducedTtm;
       }
 
       // Capture extensions for PvNodes and cutNodes
