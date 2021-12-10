@@ -1148,6 +1148,24 @@ moves_loop: // When in check, search starts here
                && (*contHist[0])[movedPiece][to_sq(move)] >= 10000)
           extension = 1;
 
+      if (   !rootNode
+          &&  PvNode
+          &&  depth >= 8
+          &&  moveCount == 2
+          && !excludedMove
+          &&  eval < VALUE_KNOWN_WIN)
+      {
+          Value singularBeta = eval - 3 * depth;
+          Depth singularDepth = (depth - 1) / 2;
+
+          ss->excludedMove = move;
+          value = search<NonPV>(pos, ss, singularBeta - 1, singularBeta, singularDepth, cutNode);
+          ss->excludedMove = MOVE_NONE;
+
+          if (value < singularBeta)
+              extension = 1;
+      }
+
       // Add extension to new depth
       newDepth += extension;
       ss->doubleExtensions = (ss-1)->doubleExtensions + (extension == 2);
