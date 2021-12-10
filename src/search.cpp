@@ -985,6 +985,8 @@ moves_loop: // When in check, search starts here
     value = bestValue;
     singularQuietLMR = moveCountPruning = false;
 
+    Value bestFirstMoveValue = VALUE_INFINITE;
+
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal or greater than the current depth, and the result of this search was a fail low.
     bool likelyFailLow =    PvNode
@@ -1238,7 +1240,7 @@ moves_loop: // When in check, search starts here
               rangeReduction++;
 
           // If the son is reduced and fails high it will be re-searched at full depth
-          doFullDepthSearch = value > alpha && d < newDepth;
+          doFullDepthSearch = (value > alpha || value > bestFirstMoveValue + 192) && d < newDepth;
           doDeeperSearch = value > alpha + 88;
           didLMR = true;
       }
@@ -1319,6 +1321,9 @@ moves_loop: // When in check, search starts here
               // move position in the list is preserved - just the PV is pushed up.
               rm.score = -VALUE_INFINITE;
       }
+
+      if (moveCount == 1)
+          bestFirstMoveValue = value;
 
       if (value > bestValue)
       {
