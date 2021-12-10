@@ -592,7 +592,7 @@ namespace {
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning,
-         ttCapture, singularQuietLMR;
+         ttCapture, singularQuietLMR, singularNode;
     Piece movedPiece;
     int moveCount, captureCount, quietCount, bestMoveCount, improvement;
 
@@ -983,7 +983,7 @@ moves_loop: // When in check, search starts here
                                       ss->ply);
 
     value = bestValue;
-    singularQuietLMR = moveCountPruning = false;
+    singularQuietLMR = singularNode = moveCountPruning = false;
 
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal or greater than the current depth, and the result of this search was a fail low.
@@ -1108,6 +1108,7 @@ moves_loop: // When in check, search starts here
           {
               extension = 1;
               singularQuietLMR = !ttCapture;
+              singularNode = value < singularBeta - 84;
 
               // Avoid search explosion by limiting the number of double extensions
               if (   !PvNode
@@ -1228,6 +1229,9 @@ moves_loop: // When in check, search starts here
                        : PvNode && depth > 6       ? 1
                        : cutNode && moveCount <= 7 ? 1
                        :                             0;
+
+          if (singularNode && r > 1)
+              r = 1;
 
           Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
 
