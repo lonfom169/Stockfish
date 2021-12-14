@@ -587,7 +587,7 @@ namespace {
     TTEntry* tte;
     Key posKey;
     Move ttMove, move, excludedMove, bestMove;
-    Depth extension, newDepth;
+    Depth extension, newDepth, d;
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning,
@@ -1165,6 +1165,7 @@ moves_loop: // When in check, search starts here
       pos.do_move(move, st, givesCheck);
 
       bool doDeeperSearch = false;
+      bool doResearch = false;
 
       // Step 16. Late moves reduction / extension (LMR, ~200 Elo)
       // We use various heuristics for the sons of a node after the first son has
@@ -1228,7 +1229,7 @@ moves_loop: // When in check, search starts here
                        : cutNode && moveCount <= 7 ? 1
                        :                             0;
 
-          Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
+          d = std::clamp(newDepth - r, 1, newDepth + deeper);
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
 
@@ -1239,6 +1240,7 @@ moves_loop: // When in check, search starts here
           // If the son is reduced and fails high it will be re-searched at full depth
           doFullDepthSearch = value > alpha && d < newDepth;
           doDeeperSearch = value > alpha + 88;
+          doResearch = value <= alpha && value > alpha - 15 && cutNode && moveCount <= 5 && d < newDepth - 2;
           didLMR = true;
       }
       else
@@ -1261,6 +1263,9 @@ moves_loop: // When in check, search starts here
               update_continuation_histories(ss, movedPiece, to_sq(move), bonus);
           }
       }
+
+      if (doResearch)
+          value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d + 1, cutNode);
 
       // For PV nodes only, do a full PV search on the first move or after a fail
       // high (in the latter case search only if value < beta), otherwise let the
