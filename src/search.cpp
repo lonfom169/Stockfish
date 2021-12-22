@@ -807,6 +807,7 @@ namespace {
     // Step 7. Futility pruning: child node (~25 Elo).
     // The depth condition is important for mate finding.
     if (   !ss->ttPv
+        && !excludedMove
         &&  depth < 9
         &&  eval - futility_margin(depth, improving) >= beta
         &&  eval < 15000) // 50% larger than VALUE_KNOWN_WIN, but smaller than TB wins.
@@ -1182,6 +1183,9 @@ moves_loop: // When in check, search starts here
 
           // Increase reduction if ttMove is a capture (~3 Elo)
           if (ttCapture)
+              r++;
+
+          if (excludedMove)
               r++;
 
           ss->statScore =  thisThread->mainHistory[us][from_to(move)]
