@@ -970,6 +970,8 @@ moves_loop: // When in check, search starts here
     value = bestValue;
     moveCountPruning = false;
 
+    bool singular = false;
+
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal or greater than the current depth, and the result of this search was a fail low.
     bool likelyFailLow =    PvNode
@@ -1096,6 +1098,7 @@ moves_loop: // When in check, search starts here
           if (value < singularBeta)
           {
               extension = 1;
+              singular = value < singularBeta - 122;
 
               // Avoid search explosion by limiting the number of double extensions
               if (   !PvNode
@@ -1181,7 +1184,7 @@ moves_loop: // When in check, search starts here
               r += 2;
 
           // Increase reduction if ttMove is a capture (~3 Elo)
-          if (ttCapture)
+          if (ttCapture || singular)
               r++;
 
           ss->statScore =  thisThread->mainHistory[us][from_to(move)]
