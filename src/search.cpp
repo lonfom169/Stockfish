@@ -1061,7 +1061,7 @@ moves_loop: // When in check, search starts here
               // Futility pruning: parent node (~9 Elo)
               if (   !ss->inCheck
                   && lmrDepth < 8
-                  && ss->staticEval + 142 + 139 * lmrDepth + history / 64 <= alpha)
+                  && ss->staticEval + 142 + (139 - ss->r * 3) * lmrDepth + history / 64 <= alpha)
                   continue;
 
               // Prune moves with negative SEE (~3 Elo)
@@ -1204,7 +1204,9 @@ moves_loop: // When in check, search starts here
 
           Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
 
+          (ss+1)->r = r;
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
+          (ss+1)->r = 0;
 
           // Range reductions (~3 Elo)
           if (ss->staticEval - value < 30 && depth > 7)
@@ -1219,6 +1221,7 @@ moves_loop: // When in check, search starts here
       {
           doFullDepthSearch = !PvNode || moveCount > 1;
           didLMR = false;
+          (ss+1)->r = 0;
       }
 
       // Step 17. Full depth search when LMR is skipped or fails high
