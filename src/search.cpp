@@ -1026,7 +1026,8 @@ moves_loop: // When in check, search starts here
           moveCountPruning = moveCount >= futility_move_count(improving, depth);
 
           // Reduced depth of the next LMR search
-          int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount, rangeReduction > 2, delta, thisThread->rootDelta), 0);
+          int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount, rangeReduction > 2, delta,
+                                  thisThread->rootDelta) - ss->r / 3, 0);
 
           if (   captureOrPromotion
               || givesCheck)
@@ -1202,6 +1203,8 @@ moves_loop: // When in check, search starts here
                        : cutNode && moveCount <= 7 ? 1
                        :                             0;
 
+          (ss+1)->r = r;
+
           Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
@@ -1219,6 +1222,7 @@ moves_loop: // When in check, search starts here
       {
           doFullDepthSearch = !PvNode || moveCount > 1;
           didLMR = false;
+          (ss+1)->r = 0;
       }
 
       // Step 17. Full depth search when LMR is skipped or fails high

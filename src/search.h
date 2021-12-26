@@ -48,6 +48,7 @@ struct Stack {
   Move killers[2];
   Value staticEval;
   Depth depth;
+  Depth r;
   int statScore;
   int moveCount;
   bool inCheck;
