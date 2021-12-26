@@ -1184,6 +1184,9 @@ moves_loop: // When in check, search starts here
           if (ttCapture)
               r++;
 
+          if (ss->fullSearch)
+              r += ss->r / 2;
+
           ss->statScore =  thisThread->mainHistory[us][from_to(move)]
                          + (*contHist[0])[movedPiece][to_sq(move)]
                          + (*contHist[1])[movedPiece][to_sq(move)]
@@ -1204,6 +1207,8 @@ moves_loop: // When in check, search starts here
 
           Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
 
+          (ss+1)->r = r;
+
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
 
           // Range reductions (~3 Elo)
@@ -1219,12 +1224,15 @@ moves_loop: // When in check, search starts here
       {
           doFullDepthSearch = !PvNode || moveCount > 1;
           didLMR = false;
+          (ss+1)->r = 0;
       }
 
       // Step 17. Full depth search when LMR is skipped or fails high
       if (doFullDepthSearch)
       {
+          (ss+1)->fullSearch = true;
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth + doDeeperSearch, !cutNode);
+          (ss+1)->fullSearch = false;
 
           // If the move passed LMR update its stats
           if (didLMR && !captureOrPromotion)
