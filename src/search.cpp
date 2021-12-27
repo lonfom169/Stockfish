@@ -753,6 +753,10 @@ namespace {
 
     CapturePieceToHistory& captureHistory = thisThread->captureHistory;
 
+    const PieceToHistory* contHist[] = { (ss-1)->continuationHistory, (ss-2)->continuationHistory,
+                                          nullptr                   , (ss-4)->continuationHistory,
+                                          nullptr                   , (ss-6)->continuationHistory };
+
     // Step 6. Static evaluation of the position
     if (ss->inCheck)
     {
@@ -809,7 +813,10 @@ namespace {
     if (   !ss->ttPv
         &&  depth < 9
         &&  eval - futility_margin(depth, improving) >= beta
-        &&  eval < 15000) // 50% larger than VALUE_KNOWN_WIN, but smaller than TB wins.
+        &&  eval < 15000 // 50% larger than VALUE_KNOWN_WIN, but smaller than TB wins.
+        && (*contHist[0])[pos.moved_piece(ss->currentMove)][to_sq(ss->currentMove)]
+         + (*contHist[1])[pos.moved_piece(ss->currentMove)][to_sq(ss->currentMove)]
+         + (*contHist[3])[pos.moved_piece(ss->currentMove)][to_sq(ss->currentMove)] < 20000 - 2000 * depth)
         return eval;
 
     // Step 8. Null move search with verification search (~22 Elo)
@@ -954,10 +961,6 @@ moves_loop: // When in check, search starts here
        )
         return probCutBeta;
 
-
-    const PieceToHistory* contHist[] = { (ss-1)->continuationHistory, (ss-2)->continuationHistory,
-                                          nullptr                   , (ss-4)->continuationHistory,
-                                          nullptr                   , (ss-6)->continuationHistory };
 
     Move countermove = thisThread->counterMoves[pos.piece_on(prevSq)][prevSq];
 
