@@ -589,13 +589,13 @@ namespace {
     bool givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning, ttCapture;
     Piece movedPiece;
-    int moveCount, captureCount, quietCount, bestMoveCount, improvement;
+    int moveCount, captureCount, quietCount, bestMoveCount, bestValueCount, improvement;
 
     // Step 1. Initialize node
     ss->inCheck        = pos.checkers();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
-    moveCount          = bestMoveCount = captureCount = quietCount = ss->moveCount = 0;
+    moveCount          = bestMoveCount = bestValueCount = captureCount = quietCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
 
@@ -1148,6 +1148,7 @@ moves_loop: // When in check, search starts here
       pos.do_move(move, st, givesCheck);
 
       bool doDeeperSearch = false;
+      bool doShallowerSearch = false;
 
       // Step 16. Late moves reduction / extension (LMR, ~98 Elo)
       // We use various heuristics for the sons of a node after the first son has
@@ -1165,6 +1166,10 @@ moves_loop: // When in check, search starts here
           if (   PvNode
               && bestMoveCount <= 3)
               r--;
+
+          if (   !PvNode
+              && bestValueCount > 3)
+              r++;
 
           // Decrease reduction if position is or has been on the PV
           // and node is not likely to fail low. (~3 Elo)
@@ -1213,6 +1218,14 @@ moves_loop: // When in check, search starts here
           // If the son is reduced and fails high it will be re-searched at full depth
           doFullDepthSearch = value > alpha && d < newDepth;
           doDeeperSearch = value > alpha + 88;
+          doShallowerSearch =    value < alpha + 25
+                              && !PvNode
+                              && moveCount > 10
+                              && !captureOrPromotion
+                              && !givesCheck
+                              && !ss->inCheck
+                              && bestValueCount > 3
+                              && d < newDepth - 1;
           didLMR = true;
       }
       else
@@ -1224,7 +1237,7 @@ moves_loop: // When in check, search starts here
       // Step 17. Full depth search when LMR is skipped or fails high
       if (doFullDepthSearch)
       {
-          value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth + doDeeperSearch, !cutNode);
+          value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth + doDeeperSearch - doShallowerSearch, !cutNode);
 
           // If the move passed LMR update its stats
           if (didLMR && !captureOrPromotion)
@@ -1296,6 +1309,9 @@ moves_loop: // When in check, search starts here
       if (value > bestValue)
       {
           bestValue = value;
+
+          if (moveCount > 1)
+              bestValueCount++;
 
           if (value > alpha)
           {
