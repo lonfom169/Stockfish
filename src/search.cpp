@@ -637,6 +637,7 @@ namespace {
     (ss+2)->killers[0]   = (ss+2)->killers[1] = MOVE_NONE;
     ss->doubleExtensions = (ss-1)->doubleExtensions;
     ss->depth            = depth;
+    ss->lmrFail          = 0;
     Square prevSq        = to_sq((ss-1)->currentMove);
 
     // Update the running average statistics for double extensions
@@ -808,6 +809,7 @@ namespace {
     // The depth condition is important for mate finding.
     if (   !ss->ttPv
         &&  depth < 9
+        && (ss-1)->lmrFail < 1100
         &&  eval - futility_margin(depth, improving) >= beta
         &&  eval < 15000) // 50% larger than VALUE_KNOWN_WIN, but smaller than TB wins.
         return eval;
@@ -1213,6 +1215,7 @@ moves_loop: // When in check, search starts here
           // If the son is reduced and fails high it will be re-searched at full depth
           doFullDepthSearch = value > alpha && d < newDepth;
           doDeeperSearch = value > alpha + 88;
+          ss->lmrFail = value - alpha;
           didLMR = true;
       }
       else
