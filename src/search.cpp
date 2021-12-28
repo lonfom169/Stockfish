@@ -637,6 +637,7 @@ namespace {
     (ss+2)->killers[0]   = (ss+2)->killers[1] = MOVE_NONE;
     ss->doubleExtensions = (ss-1)->doubleExtensions;
     ss->depth            = depth;
+    ss->red              = false;
     Square prevSq        = to_sq((ss-1)->currentMove);
 
     // Update the running average statistics for double extensions
@@ -1026,7 +1027,8 @@ moves_loop: // When in check, search starts here
           moveCountPruning = moveCount >= futility_move_count(improving, depth);
 
           // Reduced depth of the next LMR search
-          int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount, rangeReduction > 2, delta, thisThread->rootDelta), 0);
+          int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount, rangeReduction > 2, delta,
+                                  thisThread->rootDelta) - (ss-1)->red, 0);
 
           if (   captureOrPromotion
               || givesCheck)
@@ -1159,7 +1161,7 @@ moves_loop: // When in check, search starts here
               || !captureOrPromotion
               || (cutNode && (ss-1)->moveCount > 1)))
       {
-          Depth r = reduction(improving, depth, moveCount, rangeReduction > 2, delta, thisThread->rootDelta);
+          Depth r = reduction(improving, depth, moveCount, rangeReduction > 2, delta, thisThread->rootDelta) + (ss-1)->red;
 
           // Decrease reduction at some PvNodes (~2 Elo)
           if (   PvNode
@@ -1213,6 +1215,7 @@ moves_loop: // When in check, search starts here
           // If the son is reduced and fails high it will be re-searched at full depth
           doFullDepthSearch = value > alpha && d < newDepth;
           doDeeperSearch = value > alpha + 88;
+          ss->red = value < alpha - 88; // Attempt tougher reduction there
           didLMR = true;
       }
       else
