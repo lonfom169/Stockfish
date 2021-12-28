@@ -69,9 +69,9 @@ namespace {
   // Reductions lookup table, initialized at startup
   int Reductions[MAX_MOVES]; // [depth or moveNumber]
 
-  Depth reduction(bool i, Depth d, int mn, bool rangeReduction, Value delta, Value rootDelta) {
+  Depth reduction(bool i, Depth d, int mn, bool rangeReduction, Value delta, Value rootDelta, bool ftlCount) {
     int r = Reductions[d] * Reductions[mn];
-    return (r + 1358 - int(delta) * 1024 / int(rootDelta)) / 1024 + (!i && r > 904) + rangeReduction;
+    return (r + 1358 - int(delta) * 1024 / int(rootDelta)) / 1024 + (!i && r > 904) + rangeReduction + ftlCount;
   }
 
   constexpr int futility_move_count(bool improving, Depth depth) {
@@ -589,13 +589,13 @@ namespace {
     bool givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning, ttCapture;
     Piece movedPiece;
-    int moveCount, captureCount, quietCount, bestMoveCount, improvement;
+    int moveCount, captureCount, quietCount, bestMoveCount, ftlCount, improvement;
 
     // Step 1. Initialize node
     ss->inCheck        = pos.checkers();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
-    moveCount          = bestMoveCount = captureCount = quietCount = ss->moveCount = 0;
+    moveCount          = bestMoveCount = ftlCount = captureCount = quietCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
 
@@ -1026,7 +1026,8 @@ moves_loop: // When in check, search starts here
           moveCountPruning = moveCount >= futility_move_count(improving, depth);
 
           // Reduced depth of the next LMR search
-          int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount, rangeReduction > 2, delta, thisThread->rootDelta), 0);
+          int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount, rangeReduction > 2, delta,
+                                  thisThread->rootDelta, ftlCount > 3), 0);
 
           if (   captureOrPromotion
               || givesCheck)
@@ -1159,7 +1160,7 @@ moves_loop: // When in check, search starts here
               || !captureOrPromotion
               || (cutNode && (ss-1)->moveCount > 1)))
       {
-          Depth r = reduction(improving, depth, moveCount, rangeReduction > 2, delta, thisThread->rootDelta);
+          Depth r = reduction(improving, depth, moveCount, rangeReduction > 2, delta, thisThread->rootDelta, ftlCount > 3);
 
           // Decrease reduction at some PvNodes (~2 Elo)
           if (   PvNode
@@ -1213,6 +1214,7 @@ moves_loop: // When in check, search starts here
           // If the son is reduced and fails high it will be re-searched at full depth
           doFullDepthSearch = value > alpha && d < newDepth;
           doDeeperSearch = value > alpha + 88;
+          ftlCount += value < alpha - 100;
           didLMR = true;
       }
       else
@@ -1225,6 +1227,7 @@ moves_loop: // When in check, search starts here
       if (doFullDepthSearch)
       {
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth + doDeeperSearch, !cutNode);
+          ftlCount += value < alpha - 100;
 
           // If the move passed LMR update its stats
           if (didLMR && !captureOrPromotion)
