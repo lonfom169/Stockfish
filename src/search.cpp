@@ -1238,6 +1238,9 @@ moves_loop: // When in check, search starts here
           (ss+1)->pv = pv;
           (ss+1)->pv[0] = MOVE_NONE;
 
+          if (PvNode && extension)
+              alpha -= 2;
+
           value = -search<PV>(pos, ss+1, -beta, -alpha,
                               std::min(maxNextDepth, newDepth), false);
       }
