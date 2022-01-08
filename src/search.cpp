@@ -589,13 +589,13 @@ namespace {
     bool givesCheck, improving, didLMR, priorCapture;
     bool captureOrPromotion, doFullDepthSearch, moveCountPruning, ttCapture;
     Piece movedPiece;
-    int moveCount, captureCount, quietCount, bestMoveCount, improvement;
+    int moveCount, captureCount, quietCount, bestMoveCount, bestValueCount, improvement;
 
     // Step 1. Initialize node
     ss->inCheck        = pos.checkers();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
-    moveCount          = bestMoveCount = captureCount = quietCount = ss->moveCount = 0;
+    moveCount          = bestMoveCount = bestValueCount = captureCount = quietCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
 
@@ -1164,6 +1164,10 @@ moves_loop: // When in check, search starts here
               && bestMoveCount <= 3)
               r--;
 
+          if (   cutNode
+              && !bestValueCount)
+              r--;
+
           // Decrease reduction if position is or has been on the PV
           // and node is not likely to fail low. (~3 Elo)
           if (   ss->ttPv
@@ -1290,6 +1294,9 @@ moves_loop: // When in check, search starts here
       if (value > bestValue)
       {
           bestValue = value;
+
+          if (moveCount > 1)
+              bestValueCount++;
 
           if (value > alpha)
           {
