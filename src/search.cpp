@@ -937,6 +937,7 @@ moves_loop: // When in check, search starts here
 
     value = bestValue;
     moveCountPruning = false;
+    bool ttExtended = false;
 
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal or greater than the current depth, and the result of this search was a fail low.
@@ -1101,6 +1102,8 @@ moves_loop: // When in check, search starts here
               extension = 1;
       }
 
+      ttExtended = ttMove && extension;
+
       // Add extension to new depth
       newDepth += extension;
       ss->doubleExtensions = (ss-1)->doubleExtensions + (extension == 2);
@@ -1173,7 +1176,7 @@ moves_loop: // When in check, search starts here
                        : cutNode && moveCount <= 7 ? 1
                        :                             0;
 
-          Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
+          Depth d = std::clamp(newDepth - (ttExtended && moveCount < 8 && r > 2 ? 2 : r), 1, newDepth + deeper);
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
 
