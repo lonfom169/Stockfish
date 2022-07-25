@@ -845,7 +845,10 @@ namespace {
             thisThread->nmpMinPly = 0;
 
             if (v >= beta)
+            {
+                update_continuation_histories(ss, pos.moved_piece(ss->currentMove), to_sq(ss->currentMove), stat_bonus(depth-R));
                 return nullValue;
+            }
         }
     }
 
