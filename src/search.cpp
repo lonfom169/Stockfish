@@ -947,6 +947,8 @@ moves_loop: // When in check, search starts here
     value = bestValue;
     moveCountPruning = false;
 
+    int highValueCount = 0;
+
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal or greater than the current depth, and the result of this search was a fail low.
     bool likelyFailLow =    PvNode
@@ -1273,6 +1275,9 @@ moves_loop: // When in check, search starts here
               rm.score = -VALUE_INFINITE;
       }
 
+      if (value > 900)
+          highValueCount++;
+
       if (value > bestValue)
       {
           bestValue = value;
@@ -1318,6 +1323,9 @@ moves_loop: // When in check, search starts here
           else if (!capture && quietCount < 64)
               quietsSearched[quietCount++] = move;
       }
+
+      if (highValueCount == 3)
+          break;
     }
 
     // The following condition would detect a stop only after move loop has been
