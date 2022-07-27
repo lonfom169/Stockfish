@@ -912,6 +912,7 @@ namespace {
 
     if (    cutNode
         &&  depth >= 8
+        && !pos.capture(ss->currentMove)
         && !ttMove)
         depth--;
 
