@@ -901,6 +901,8 @@ namespace {
             }
     }
 
+moves_loop: // When in check, search starts here
+
     // Step 11. If the position is not in TT, decrease depth by 3.
     // Use qsearch if depth is equal or below zero (~4 Elo)
     if (    PvNode
@@ -914,8 +916,6 @@ namespace {
         &&  depth >= 8
         && !ttMove)
         depth--;
-
-moves_loop: // When in check, search starts here
 
     // Step 12. A small Probcut idea, when we are in check (~0 Elo)
     probCutBeta = beta + 481;
