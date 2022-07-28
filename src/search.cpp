@@ -558,7 +558,7 @@ namespace {
     Move ttMove, move, excludedMove, bestMove;
     Depth extension, newDepth;
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
-    bool givesCheck, improving, didLMR, priorCapture;
+    bool givesCheck, improving, didLMR, priorCapture, survivedNullPrun;
     bool capture, doFullDepthSearch, moveCountPruning, ttCapture;
     Piece movedPiece;
     int moveCount, captureCount, quietCount, improvement, complexity;
@@ -570,6 +570,7 @@ namespace {
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
     moveCount          = captureCount = quietCount = ss->moveCount = 0;
+    survivedNullPrun   = false;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
 
@@ -847,6 +848,7 @@ namespace {
             if (v >= beta)
                 return nullValue;
         }
+        survivedNullPrun = true;
     }
 
     probCutBeta = beta + 179 - 46 * improving;
@@ -1150,6 +1152,9 @@ moves_loop: // When in check, search starts here
           if (   ss->ttPv
               && !likelyFailLow)
               r -= 2;
+
+          if (survivedNullPrun)
+              r++;
 
           // Decrease reduction if opponent's move count is high (~1 Elo)
           if ((ss-1)->moveCount > 7)
