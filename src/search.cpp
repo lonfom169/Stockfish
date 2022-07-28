@@ -756,7 +756,7 @@ namespace {
         ss->staticEval = eval = evaluate(pos, &complexity);
 
         // Save static evaluation into transposition table
-        if (!excludedMove)
+        if (!excludedMove || depth > 9)
             tte->save(posKey, VALUE_NONE, ss->ttPv, BOUND_NONE, DEPTH_NONE, MOVE_NONE, eval);
     }
 
