@@ -562,6 +562,7 @@ namespace {
     bool capture, doFullDepthSearch, moveCountPruning, ttCapture;
     Piece movedPiece;
     int moveCount, captureCount, quietCount, improvement, complexity;
+    int matchedCount, auxMatchedCount;
 
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
@@ -569,7 +570,7 @@ namespace {
     ss->inCheck        = pos.checkers();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
-    moveCount          = captureCount = quietCount = ss->moveCount = 0;
+    moveCount          = captureCount = quietCount = matchedCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
 
@@ -781,9 +782,11 @@ namespace {
     // Step 7. Razoring.
     // If eval is really low check with qsearch if it can exceed alpha, if it can't,
     // return a fail low.
-    if (   !PvNode
-        && depth <= 7
-        && eval < alpha - 348 - 258 * depth * depth)
+    matchedCount = !PvNode
+                 + (depth <= 7)
+                 + (eval < alpha - 348 - 258 * depth * depth);
+
+    if (matchedCount == 3)
     {
         value = qsearch<NonPV>(pos, ss, alpha - 1, alpha);
         if (value < alpha)
@@ -792,23 +795,29 @@ namespace {
 
     // Step 8. Futility pruning: child node (~25 Elo).
     // The depth condition is important for mate finding.
-    if (   !ss->ttPv
-        &&  depth < 8
-        &&  eval - futility_margin(depth, improving) - (ss-1)->statScore / 256 >= beta
-        &&  eval >= beta
-        &&  eval < 26305) // larger than VALUE_KNOWN_WIN, but smaller than TB wins.
+    auxMatchedCount = matchedCount;
+    matchedCount += !ss->ttPv
+                   + (depth < 8)
+                   + (eval - futility_margin(depth, improving) - (ss-1)->statScore / 256 >= beta)
+                   + (eval >= beta)
+                   + (eval < 26305); // larger than VALUE_KNOWN_WIN, but smaller than TB wins.
+
+    if (matchedCount - auxMatchedCount == 5)
         return eval;
 
     // Step 9. Null move search with verification search (~22 Elo)
-    if (   !PvNode
-        && (ss-1)->currentMove != MOVE_NULL
-        && (ss-1)->statScore < 14695
-        &&  eval >= beta
-        &&  eval >= ss->staticEval
-        &&  ss->staticEval >= beta - 15 * depth - improvement / 15 + 201 + complexity / 24
-        && !excludedMove
-        &&  pos.non_pawn_material(us)
-        && (ss->ply >= thisThread->nmpMinPly || us != thisThread->nmpColor))
+    auxMatchedCount = matchedCount;
+    matchedCount += !PvNode
+                  + ((ss-1)->currentMove != MOVE_NULL)
+                  + ((ss-1)->statScore < 14695)
+                  + (eval >= beta)
+                  + (eval >= ss->staticEval)
+                  + (ss->staticEval >= beta - 15 * depth - improvement / 15 + 201 + complexity / 24)
+                  + !excludedMove
+                  + bool(pos.non_pawn_material(us))
+                  + (ss->ply >= thisThread->nmpMinPly || us != thisThread->nmpColor);
+
+    if (matchedCount - auxMatchedCount == 9)
     {
         assert(eval - beta >= 0);
 
@@ -909,6 +918,9 @@ namespace {
 
     if (depth <= 0)
         return qsearch<PV>(pos, ss, alpha, beta);
+
+    if (matchedCount == 15)
+        depth++;
 
     if (    cutNode
         &&  depth >= 8
