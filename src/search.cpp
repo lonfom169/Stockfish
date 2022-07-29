@@ -62,8 +62,8 @@ namespace {
   enum NodeType { NonPV, PV, Root };
 
   // Futility margin
-  Value futility_margin(Depth d, bool improving) {
-    return Value(168 * (d - improving));
+  Value futility_margin(Depth d, bool improving, int margin) {
+    return Value((168 - margin) * (d - improving));
   }
 
   // Reductions lookup table, initialized at startup
@@ -558,7 +558,7 @@ namespace {
     Move ttMove, move, excludedMove, bestMove;
     Depth extension, newDepth;
     Value bestValue, value, ttValue, eval, maxValue, probCutBeta;
-    bool givesCheck, improving, didLMR, priorCapture;
+    bool givesCheck, improving, didLMR, priorCapture, almostFutPruned;
     bool capture, doFullDepthSearch, moveCountPruning, ttCapture;
     Piece movedPiece;
     int moveCount, captureCount, quietCount, improvement, complexity;
@@ -569,6 +569,7 @@ namespace {
     ss->inCheck        = pos.checkers();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
+    almostFutPruned    = false;
     moveCount          = captureCount = quietCount = ss->moveCount = 0;
     bestValue          = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
@@ -794,10 +795,14 @@ namespace {
     // The depth condition is important for mate finding.
     if (   !ss->ttPv
         &&  depth < 8
-        &&  eval - futility_margin(depth, improving) - (ss-1)->statScore / 256 >= beta
         &&  eval >= beta
         &&  eval < 26305) // larger than VALUE_KNOWN_WIN, but smaller than TB wins.
-        return eval;
+    {
+        if (eval - futility_margin(depth, improving, 0) - (ss-1)->statScore / 256 >= beta)
+            return eval;
+        else if (eval - futility_margin(depth, improving, 10) - (ss-1)->statScore / 256 >= beta)
+            almostFutPruned = true;
+    }
 
     // Step 9. Null move search with verification search (~22 Elo)
     if (   !PvNode
@@ -1169,6 +1174,9 @@ moves_loop: // When in check, search starts here
 
           // Increase reduction if next ply has a lot of fail high else reset count to 0
           if ((ss+1)->cutoffCnt > 3 && !PvNode)
+              r++;
+
+          if (almostFutPruned)
               r++;
 
           ss->statScore =  thisThread->mainHistory[us][from_to(move)]
