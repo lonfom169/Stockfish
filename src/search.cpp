@@ -1677,9 +1677,7 @@ moves_loop: // When in check, search starts here
 
     Color us = pos.side_to_move();
     Thread* thisThread = pos.this_thread();
-    CapturePieceToHistory& captureHistory = thisThread->captureHistory;
     Piece moved_piece = pos.moved_piece(bestMove);
-    PieceType captured = type_of(pos.piece_on(to_sq(bestMove)));
     int bonus1 = stat_bonus(depth + 1);
 
     if (!pos.capture(bestMove))
@@ -1699,7 +1697,7 @@ moves_loop: // When in check, search starts here
     }
     else
         // Increase stats for the best move in case it was a capture move
-        captureHistory[moved_piece][to_sq(bestMove)][captured] << bonus1;
+        update_continuation_histories(ss, moved_piece, to_sq(bestMove), bonus1 / 4);
 
     // Extra penalty for a quiet early move that was not a TT move or
     // main killer move in previous ply when it gets refuted.
@@ -1711,8 +1709,7 @@ moves_loop: // When in check, search starts here
     for (int i = 0; i < captureCount; ++i)
     {
         moved_piece = pos.moved_piece(capturesSearched[i]);
-        captured = type_of(pos.piece_on(to_sq(capturesSearched[i])));
-        captureHistory[moved_piece][to_sq(capturesSearched[i])][captured] << -bonus1;
+        update_continuation_histories(ss, moved_piece, to_sq(capturesSearched[i]), -bonus1 / 4);
     }
   }
 
