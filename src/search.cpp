@@ -1318,6 +1318,10 @@ moves_loop: // When in check, search starts here
           else if (!capture && quietCount < 64)
               quietsSearched[quietCount++] = move;
       }
+
+      if (   thisThread->rootMoves[0].score < -260
+          && value > -22)
+          break;
     }
 
     // The following condition would detect a stop only after move loop has been
