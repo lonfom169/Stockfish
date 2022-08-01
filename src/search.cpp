@@ -910,6 +910,9 @@ namespace {
     if (depth <= 0)
         return qsearch<PV>(pos, ss, alpha, beta);
 
+    if (excludedMove)
+        depth++;
+
     if (    cutNode
         &&  depth >= 8
         && !ttMove)
