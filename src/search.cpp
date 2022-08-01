@@ -634,6 +634,8 @@ namespace {
     if (!excludedMove)
         ss->ttPv = PvNode || (ss->ttHit && tte->is_pv());
 
+    bool ttMoveOff = excludedMove && ttValue > beta + 140;
+
     // At non-PV nodes we check for an early TT cutoff
     if (  !PvNode
         && ss->ttHit
@@ -909,6 +911,9 @@ namespace {
 
     if (depth <= 0)
         return qsearch<PV>(pos, ss, alpha, beta);
+
+    if (ttMoveOff)
+        depth++;
 
     if (    cutNode
         &&  depth >= 8
