@@ -187,7 +187,7 @@ void MainThread::search() {
       return;
   }
 
-  Color us = rootPos.side_to_move();
+  us = rootPos.side_to_move();
   Time.init(Limits, us, rootPos.game_ply());
   TT.new_search();
 
@@ -272,8 +272,9 @@ void Thread::search() {
   Depth lastBestMoveDepth = 0;
   MainThread* mainThread = (this == Threads.main() ? Threads.main() : nullptr);
   double timeReduction = 1, totBestMoveChanges = 0;
-  Color us = rootPos.side_to_move();
   int iterIdx = 0;
+
+  us = rootPos.side_to_move();
 
   std::memset(ss-7, 0, 10 * sizeof(Stack));
   for (int i = 7; i > 0; i--)
@@ -1318,6 +1319,11 @@ moves_loop: // When in check, search starts here
           else if (!capture && quietCount < 64)
               quietsSearched[quietCount++] = move;
       }
+
+      if (   thisThread->rootMoves[0].score < -260
+          && thisThread->us == pos.side_to_move()
+          && value > -22)
+          break;
     }
 
     // The following condition would detect a stop only after move loop has been
