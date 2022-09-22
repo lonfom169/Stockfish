@@ -1297,6 +1297,9 @@ moves_loop: // When in check, search starts here
       else
          ss->cutoffCnt = 0;
 
+      if (value > Value(1860))
+          moveCount++;
+
 
       // If the move is worse than some previously searched move, remember it to update its stats later
       if (move != bestMove)
