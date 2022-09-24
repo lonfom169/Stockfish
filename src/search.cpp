@@ -268,7 +268,6 @@ void Thread::search() {
   Stack stack[MAX_PLY+10], *ss = stack+7;
   Move  pv[MAX_PLY+1];
   Value alpha, beta, delta;
-  Move  lastBestMove = MOVE_NONE;
   Depth lastBestMoveDepth = 0;
   MainThread* mainThread = (this == Threads.main() ? Threads.main() : nullptr);
   double timeReduction = 1, totBestMoveChanges = 0;
@@ -286,6 +285,8 @@ void Thread::search() {
 
   bestValue = delta = alpha = -VALUE_INFINITE;
   beta = VALUE_INFINITE;
+
+  lastBestMove = MOVE_NONE;
 
   if (mainThread)
   {
@@ -1105,6 +1106,11 @@ moves_loop: // When in check, search starts here
                    && move == ttMove
                    && move == ss->killers[0]
                    && (*contHist[0])[movedPiece][to_sq(move)] >= 5177)
+              extension = 1;
+
+          else if (   rootNode
+                   && move == thisThread->lastBestMove
+                   && move != thisThread->rootMoves[0].pv[0])
               extension = 1;
       }
 
