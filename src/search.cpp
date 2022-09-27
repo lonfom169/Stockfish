@@ -80,8 +80,8 @@ namespace {
   }
 
   // History and stats update bonus, based on depth
-  int stat_bonus(Depth d) {
-    return std::min((12 * d + 282) * d - 349 , 1594);
+  int stat_bonus(Depth d, Value v) {
+    return std::min((12 * d + v / 16 + 282) * d - 349 , 1594);
   }
 
   // Add a small random component to draw evaluations to avoid 3-fold blindness
@@ -646,16 +646,16 @@ namespace {
             {
                 // Bonus for a quiet ttMove that fails high (~3 Elo)
                 if (!ttCapture)
-                    update_quiet_stats(pos, ss, ttMove, stat_bonus(depth));
+                    update_quiet_stats(pos, ss, ttMove, stat_bonus(depth, ttValue));
 
                 // Extra penalty for early quiet moves of the previous ply (~0 Elo)
                 if ((ss-1)->moveCount <= 2 && !priorCapture)
-                    update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, -stat_bonus(depth + 1));
+                    update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, -stat_bonus(depth + 1, VALUE_ZERO));
             }
             // Penalty for a quiet ttMove that fails low (~1 Elo)
             else if (!ttCapture)
             {
-                int penalty = -stat_bonus(depth);
+                int penalty = -stat_bonus(depth, ttValue);
                 thisThread->mainHistory[us][from_to(ttMove)] << penalty;
                 update_continuation_histories(ss, pos.moved_piece(ttMove), to_sq(ttMove), penalty);
             }
@@ -1189,8 +1189,8 @@ moves_loop: // When in check, search starts here
               const bool doDeeperSearch = value > (alpha + 64 + 11 * (newDepth - d));
               value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth + doDeeperSearch, !cutNode);
 
-              int bonus = value > alpha ?  stat_bonus(newDepth)
-                                        : -stat_bonus(newDepth);
+              int bonus = value > alpha ?  stat_bonus(newDepth, value)
+                                        : -stat_bonus(newDepth, value);
 
               if (capture)
                   bonus /= 6;
@@ -1344,7 +1344,7 @@ moves_loop: // When in check, search starts here
                           || cutNode
                           || bestValue < alpha - 62 * depth;
 
-        update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, stat_bonus(depth) * (1 + extraBonus));
+        update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, stat_bonus(depth, -bestValue) * (1 + extraBonus));
     }
 
     if (PvNode)
@@ -1669,12 +1669,12 @@ moves_loop: // When in check, search starts here
     CapturePieceToHistory& captureHistory = thisThread->captureHistory;
     Piece moved_piece = pos.moved_piece(bestMove);
     PieceType captured = type_of(pos.piece_on(to_sq(bestMove)));
-    int bonus1 = stat_bonus(depth + 1);
+    int bonus1 = stat_bonus(depth + 1, bestValue);
 
     if (!pos.capture(bestMove))
     {
         int bonus2 = bestValue > beta + 137 ? bonus1               // larger bonus
-                                            : stat_bonus(depth);   // smaller bonus
+                                            : stat_bonus(depth, bestValue);   // smaller bonus
 
         // Increase stats for the best move in case it was a quiet move
         update_quiet_stats(pos, ss, bestMove, bonus2);
