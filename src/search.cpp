@@ -1147,6 +1147,12 @@ moves_loop: // When in check, search starts here
           if ((ss-1)->moveCount > 7)
               r--;
 
+          if (   rootNode
+              && thisThread->rootMoves[0].pv.size() >= 5
+              && (move == thisThread->rootMoves[0].pv[2]
+              || move == thisThread->rootMoves[0].pv[4]))
+              r--;
+
           // Increase reduction for cut nodes (~3 Elo)
           if (cutNode)
               r += 2;
