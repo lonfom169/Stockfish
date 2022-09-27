@@ -421,6 +421,9 @@ void Thread::search() {
               delta += delta / 4 + 2;
 
               assert(alpha >= -VALUE_INFINITE && beta <= VALUE_INFINITE);
+
+              if (rootDepth < 8)
+                  break;
           }
 
           // Sort the PV lines searched so far and update the GUI
