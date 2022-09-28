@@ -1129,7 +1129,7 @@ moves_loop: // When in check, search starts here
       // We use various heuristics for the sons of a node after the first son has
       // been searched. In general we would like to reduce them, but there are many
       // cases where we extend a son if it has good chances to be "interesting".
-      if (    depth >= 2
+      if (    depth >= 2 + PvNode * 2
           &&  moveCount > 1 + (PvNode && ss->ply <= 1)
           && (   !ss->ttPv
               || !capture
@@ -1157,7 +1157,7 @@ moves_loop: // When in check, search starts here
 
           // Decrease reduction for PvNodes based on depth
           if (PvNode)
-              r -= 1 + 11 / (3 + depth);
+              r -= depth <= 8 ? 2 : 1;
 
           // Decrease reduction if ttMove has been singularly extended (~1 Elo)
           if (singularQuietLMR)
