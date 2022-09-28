@@ -1215,6 +1215,9 @@ moves_loop: // When in check, search starts here
 
           value = -search<PV>(pos, ss+1, -beta, -alpha,
                               std::min(maxNextDepth, newDepth), false);
+
+          if (moveCount > 1 && value > bestValue)
+              update_continuation_histories(ss, movedPiece, to_sq(move), stat_bonus(newDepth));
       }
 
       // Step 19. Undo move
