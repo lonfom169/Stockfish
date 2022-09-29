@@ -1186,7 +1186,8 @@ moves_loop: // When in check, search starts here
           // Do full depth search when reduced LMR search fails high
           if (value > alpha && d < newDepth)
           {
-              const bool doDeeperSearch = value > (alpha + 64 + 11 * (newDepth - d));
+              int doDeeperSearch = value > (alpha + 130 + 11 * (newDepth - d)) ? 2
+                                 : value > (alpha +  64 + 11 * (newDepth - d)) ? 1 : 0;
               value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth + doDeeperSearch, !cutNode);
 
               int bonus = value > alpha ?  stat_bonus(newDepth)
