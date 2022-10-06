@@ -1042,7 +1042,8 @@ moves_loop: // When in check, search starts here
 
       // Step 15. Extensions (~66 Elo)
       // We take care to not overdo to avoid search getting stuck.
-      if (ss->ply < thisThread->rootDepth * 2)
+      if (   ss->ply < thisThread->rootDepth * 2
+          && abs(ttValue) < 7000)
       {
           // Singular extension search (~58 Elo). If all moves but one fail low on a
           // search of (alpha-s, beta-s), and just one fails high on (alpha, beta),
@@ -1053,8 +1054,7 @@ moves_loop: // When in check, search starts here
               &&  depth >= 4 - (thisThread->previousDepth > 24) + 2 * (PvNode && tte->is_pv())
               &&  move == ttMove
               && !excludedMove // Avoid recursive singular search
-           /* &&  ttValue != VALUE_NONE Already implicit in the next condition */
-              &&  abs(ttValue) < VALUE_KNOWN_WIN
+           /* &&  ttValue != VALUE_NONE Already implicit in a previous condition */
               && (tte->bound() & BOUND_LOWER)
               &&  tte->depth() >= depth - 3)
           {
