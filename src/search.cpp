@@ -828,6 +828,9 @@ namespace {
 
             assert(!thisThread->nmpMinPly); // Recursive verification is not allowed
 
+            if (nullValue > alpha - 30)
+                R--;
+
             // Do verification search at high depths, with null move pruning disabled
             // for us, until ply exceeds nmpMinPly.
             thisThread->nmpMinPly = ss->ply + 3 * (depth-R) / 4;
