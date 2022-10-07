@@ -931,11 +931,12 @@ moves_loop: // When in check, search starts here
 
     Move countermove = thisThread->counterMoves[pos.piece_on(prevSq)][prevSq];
 
-    MovePicker mp(pos, ttMove, depth, &thisThread->mainHistory,
-                                      &captureHistory,
-                                      contHist,
-                                      countermove,
-                                      ss->killers);
+    MovePicker mp(pos, ttMove, depth + improving ? 2 : 0,
+                               &thisThread->mainHistory,
+                               &captureHistory,
+                               contHist,
+                               countermove,
+                               ss->killers);
 
     value = bestValue;
     moveCountPruning = singularQuietLMR = false;
