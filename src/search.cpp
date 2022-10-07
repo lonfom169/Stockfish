@@ -502,6 +502,9 @@ void Thread::search() {
 
       mainThread->iterValue[iterIdx] = bestValue;
       iterIdx = (iterIdx + 1) & 3;
+
+      if (rootDepth < 8)
+          rootDepth++;
   }
 
   if (!mainThread)
