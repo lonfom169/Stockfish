@@ -1506,6 +1506,8 @@ moves_loop: // When in check, search starts here
 
       moveCount++;
 
+      futilityBase = std::max(bestValue + 105, futilityBase - moveCount * 2);
+
       // Futility pruning and moveCount pruning (~5 Elo)
       if (    bestValue > VALUE_TB_LOSS_IN_MAX_PLY
           && !givesCheck
