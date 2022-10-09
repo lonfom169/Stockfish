@@ -824,7 +824,10 @@ namespace {
                 nullValue = beta;
 
             if (thisThread->nmpMinPly || (abs(beta) < VALUE_KNOWN_WIN && depth < 14))
+            {
+                update_continuation_histories(ss, pos.moved_piece(ss->currentMove), to_sq(ss->currentMove), stat_bonus(depth));
                 return nullValue;
+            }
 
             assert(!thisThread->nmpMinPly); // Recursive verification is not allowed
 
