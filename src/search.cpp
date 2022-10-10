@@ -1167,6 +1167,10 @@ moves_loop: // When in check, search starts here
               && (mp.threatenedPieces & from_sq(move)))
               r--;
 
+          if (   depth > 10
+              && move == ss->killers[1])
+              r++;
+
           // Increase reduction if next ply has a lot of fail high
           if ((ss+1)->cutoffCnt > 3 && !PvNode)
               r++;
