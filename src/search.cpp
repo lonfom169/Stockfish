@@ -1194,7 +1194,7 @@ moves_loop: // When in check, search starts here
               value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth + doDeeperSearch, !cutNode);
 
               int bonus = value > alpha ?  stat_bonus(newDepth)
-                                        : -stat_bonus(newDepth);
+                                        : -stat_bonus(newDepth + (move == ss->killers[1]));
 
               if (capture)
                   bonus /= 6;
