@@ -1429,7 +1429,7 @@ moves_loop: // When in check, search starts here
 
     if (  !PvNode
         && ss->ttHit
-        && tte->depth() >= ttDepth
+        && tte->depth() > ttDepth
         && ttValue != VALUE_NONE // Only in case of TT access race
         && (tte->bound() & (ttValue >= beta ? BOUND_LOWER : BOUND_UPPER)))
         return ttValue;
