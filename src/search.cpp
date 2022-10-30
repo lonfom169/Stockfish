@@ -633,8 +633,7 @@ namespace {
         ss->ttPv = PvNode || (ss->ttHit && tte->is_pv());
 
     // At non-PV nodes we check for an early TT cutoff
-    if (  !PvNode
-        && ss->ttHit
+    if (   ss->ttHit
         && tte->depth() > depth - (tte->bound() == BOUND_EXACT)
         && ttValue != VALUE_NONE // Possible in case of TT access race
         && (tte->bound() & (ttValue >= beta ? BOUND_LOWER : BOUND_UPPER)))
@@ -663,7 +662,7 @@ namespace {
 
         // Partial workaround for the graph history interaction problem
         // For high rule50 counts don't produce transposition table cutoffs.
-        if (pos.rule50_count() < 90)
+        if (!PvNode && pos.rule50_count() < 90)
             return ttValue;
     }
 
