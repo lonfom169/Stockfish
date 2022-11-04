@@ -1190,9 +1190,10 @@ moves_loop: // When in check, search starts here
           if (value > alpha && d < newDepth)
           {
               const bool doDeeperSearch = value > (alpha + 64 + 11 * (newDepth - d));
+              Value lmrValue = value;
               value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth + doDeeperSearch, !cutNode);
 
-              int bonus = value > alpha ?  stat_bonus(newDepth)
+              int bonus = value > alpha ?  stat_bonus(newDepth + (value > lmrValue + 80))
                                         : -stat_bonus(newDepth);
 
               if (capture)
