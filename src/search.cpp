@@ -1403,6 +1403,7 @@ moves_loop: // When in check, search starts here
     }
 
     Thread* thisThread = pos.this_thread();
+    Color us = pos.side_to_move();
     bestMove = MOVE_NONE;
     ss->inCheck = pos.checkers();
     moveCount = 0;
@@ -1560,6 +1561,9 @@ moves_loop: // When in check, search starts here
           continue;
 
       quietCheckEvasions += !capture && ss->inCheck;
+
+      if (to_sq(move) & (pos.attacks_by<PAWN>(~us) | pos.attacks_by<KNIGHT>(~us) | pos.attacks_by<BISHOP>(~us)))
+          depth++;
 
       // Make and search the move
       pos.do_move(move, st, givesCheck);
