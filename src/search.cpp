@@ -1220,6 +1220,9 @@ moves_loop: // When in check, search starts here
                               std::min(maxNextDepth, newDepth), false);
       }
 
+      if (move == ttMove && value > ttValue + 300)
+          depth = std::max(depth - 1, 2);
+
       // Step 19. Undo move
       pos.undo_move(move);
 
