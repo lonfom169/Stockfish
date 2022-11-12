@@ -563,7 +563,7 @@ namespace {
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
     moveCount          = captureCount = quietCount = ss->moveCount = 0;
-    bestValue          = -VALUE_INFINITE;
+    bestValue          = ss->bestValue = -VALUE_INFINITE;
     maxValue           = VALUE_INFINITE;
 
     // Check for the available remaining time
@@ -1144,6 +1144,10 @@ moves_loop: // When in check, search starts here
           if (cutNode)
               r += 2;
 
+          if (   (ss-2)->bestValue > (ss-4)->bestValue
+              && (ss-4)->bestValue > (ss-6)->bestValue)
+              r--;
+
           // Increase reduction if ttMove is a capture (~3 Elo)
           if (ttCapture)
               r++;
@@ -1361,6 +1365,8 @@ moves_loop: // When in check, search starts here
                   depth, bestMove, ss->staticEval);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
+
+    ss->bestValue = bestValue;
 
     return bestValue;
   }
