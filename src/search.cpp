@@ -934,6 +934,8 @@ moves_loop: // When in check, search starts here
     value = bestValue;
     moveCountPruning = singularQuietLMR = false;
 
+    int targetPruning = 0;
+
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal or greater than the current depth, and the result of this search was a fail low.
     bool likelyFailLow =    PvNode
@@ -948,6 +950,9 @@ moves_loop: // When in check, search starts here
       assert(is_ok(move));
 
       if (move == excludedMove)
+          continue;
+
+      if (targetPruning && moveCount >= targetPruning)
           continue;
 
       // At root obey the "searchmoves" option and skip moves not listed in Root
@@ -1023,9 +1028,13 @@ moves_loop: // When in check, search starts here
 
               // Futility pruning: parent node (~9 Elo)
               if (   !ss->inCheck
-                  && lmrDepth < 13
                   && ss->staticEval + 106 + 145 * lmrDepth + history / 52 <= alpha)
-                  continue;
+              {
+                  if (lmrDepth < 11)
+                      continue;
+                  else if (lmrDepth < 13)
+                      targetPruning = moveCount + 4;
+              }
 
               // Prune moves with negative SEE (~3 Elo)
               if (!pos.see_ge(move, Value(-24 * lmrDepth * lmrDepth - 15 * lmrDepth)))
