@@ -74,9 +74,9 @@ namespace {
     return (r + 1642 - int(delta) * 1024 / int(rootDelta)) / 1024 + (!i && r > 916);
   }
 
-  constexpr int futility_move_count(bool improving, Depth depth) {
-    return improving ? (3 + depth * depth)
-                     : (3 + depth * depth) / 2;
+  constexpr int futility_move_count(bool improving, int lmrDepth) {
+    return improving ? (6 + lmrDepth * lmrDepth)
+                     : (6 + lmrDepth * lmrDepth) / 2;
   }
 
   // History and stats update bonus, based on depth
@@ -986,11 +986,11 @@ moves_loop: // When in check, search starts here
           && pos.non_pawn_material(us)
           && bestValue > VALUE_TB_LOSS_IN_MAX_PLY)
       {
-          // Skip quiet moves if movecount exceeds our FutilityMoveCount threshold (~7 Elo)
-          moveCountPruning = moveCount >= futility_move_count(improving, depth);
-
           // Reduced depth of the next LMR search
           int lmrDepth = std::max(newDepth - reduction(improving, depth, moveCount, delta, thisThread->rootDelta), 0);
+
+          // Skip quiet moves if movecount exceeds our FutilityMoveCount threshold (~7 Elo)
+          moveCountPruning = moveCount >= futility_move_count(improving, lmrDepth);
 
           if (   capture
               || givesCheck)
