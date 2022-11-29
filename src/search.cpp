@@ -1275,6 +1275,8 @@ moves_loop: // When in check, search starts here
 
           if (value > alpha)
           {
+              if (bestMove != MOVE_NONE)
+                  (*(ss-1)->continuationHistory)[movedPiece][to_sq(move)] = (*(ss-1)->continuationHistory)[pos.moved_piece(bestMove)][to_sq(bestMove)];
               bestMove = move;
 
               if (PvNode && !rootNode) // Update pv even in fail-high case
