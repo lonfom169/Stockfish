@@ -1222,6 +1222,9 @@ moves_loop: // When in check, search starts here
                               std::min(maxNextDepth, newDepth), false);
       }
 
+      if (value < bestValue)
+          update_continuation_histories(ss, movedPiece, to_sq(move), (value - bestValue) * 4);
+
       // Step 19. Undo move
       pos.undo_move(move);
 
