@@ -1118,6 +1118,8 @@ moves_loop: // When in check, search starts here
       // Step 16. Make the move
       pos.do_move(move, st, givesCheck);
 
+      Depth d = newDepth;
+
       // Step 17. Late moves reduction / extension (LMR, ~98 Elo)
       // We use various heuristics for the sons of a node after the first son has
       // been searched. In general we would like to reduce them, but there are many
@@ -1177,37 +1179,37 @@ moves_loop: // When in check, search starts here
           // In general we want to cap the LMR depth search at newDepth, but when
           // reduction is negative, we allow this move a limited search extension
           // beyond the first move depth. This may lead to hidden double extensions.
-          Depth d = std::clamp(newDepth - r, 1, newDepth + 1);
+          d = std::clamp(newDepth - r, 1, newDepth + 1);
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
-
-          // Do full depth search when reduced LMR search fails high
-          if (value > alpha && d < newDepth)
-          {
-              // Adjust full depth search based on LMR results - if result
-              // was good enough search deeper, if it was bad enough search shallower
-              const bool doDeeperSearch = value > (alpha + 64 + 11 * (newDepth - d));
-              const bool doShallowerSearch = value < bestValue + newDepth;
-
-              newDepth += doDeeperSearch - doShallowerSearch;
-
-              if (newDepth > d)
-                  value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
-
-              int bonus = value > alpha ?  stat_bonus(newDepth)
-                                        : -stat_bonus(newDepth);
-
-              if (capture)
-                  bonus /= 6;
-
-              update_continuation_histories(ss, movedPiece, to_sq(move), bonus);
-          }
       }
 
       // Step 18. Full depth search when LMR is skipped
       else if (!PvNode || moveCount > 1)
+               value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
+
+      const bool doDeeperSearch = value > (alpha + 64 + 11 * (newDepth - d));
+
+      // Adjust full depth search based on LMR results - if result
+      // was good enough search deeper, if it was bad enough search shallower
+      newDepth += doDeeperSearch;
+
+      // Do full depth search when reduced LMR search fails high
+      if (value > alpha && d < newDepth)
       {
+          const bool doShallowerSearch = value < bestValue + newDepth;
+          newDepth -= doShallowerSearch;
+
+          if (newDepth > d)
               value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
+
+          int bonus = value > alpha ?  stat_bonus(newDepth)
+                                    : -stat_bonus(newDepth);
+
+          if (capture)
+              bonus /= 6;
+
+          update_continuation_histories(ss, movedPiece, to_sq(move), bonus);
       }
 
       // For PV nodes only, do a full PV search on the first move or after a fail
