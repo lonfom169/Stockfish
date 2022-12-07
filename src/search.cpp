@@ -1067,7 +1067,10 @@ moves_loop: // When in check, search starts here
                   if (  !PvNode
                       && value < singularBeta - 25
                       && ss->doubleExtensions <= 9)
+                  {
                       extension = 2;
+                      depth++;
+                  }
               }
 
               // Multi-cut pruning
