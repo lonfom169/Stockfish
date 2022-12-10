@@ -941,6 +941,8 @@ moves_loop: // When in check, search starts here
                          && (tte->bound() & BOUND_UPPER)
                          && tte->depth() >= depth;
 
+    bool dblNegExt = false;
+
     // Step 13. Loop through all pseudo-legal moves until no moves remain
     // or a beta cutoff occurs.
     while ((move = mp.next_move(moveCountPruning)) != MOVE_NONE)
@@ -1083,7 +1085,10 @@ moves_loop: // When in check, search starts here
 
               // If the eval of ttMove is greater than beta, we reduce it (negative extension)
               else if (ttValue >= beta)
+              {
                   extension = -2;
+                  dblNegExt = true;
+              }
 
               // If the eval of ttMove is less than alpha and value, we reduce it (negative extension)
               else if (ttValue <= alpha && ttValue <= value)
@@ -1191,7 +1196,7 @@ moves_loop: // When in check, search starts here
               // was good enough search deeper, if it was bad enough search shallower
               const bool doDeeperSearch = value > (alpha + 64 + 11 * (newDepth - d));
               const bool doEvenDeeperSearch = value > alpha + 582;
-              const bool doShallowerSearch = value < bestValue + newDepth;
+              const int doShallowerSearch = (value < bestValue + newDepth) + dblNegExt;
 
               newDepth += doDeeperSearch - doShallowerSearch + doEvenDeeperSearch;
 
