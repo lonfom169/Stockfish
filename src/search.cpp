@@ -1191,7 +1191,7 @@ moves_loop: // When in check, search starts here
               // was good enough search deeper, if it was bad enough search shallower
               const bool doDeeperSearch = value > (alpha + 64 + 11 * (newDepth - d));
               const bool doEvenDeeperSearch = value > alpha + 582;
-              const bool doShallowerSearch = value < bestValue + newDepth;
+              const bool doShallowerSearch = value < bestValue + newDepth - 1;
 
               newDepth += doDeeperSearch - doShallowerSearch + doEvenDeeperSearch;
 
