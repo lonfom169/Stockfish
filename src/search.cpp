@@ -1069,7 +1069,7 @@ moves_loop: // When in check, search starts here
                       && ss->doubleExtensions <= 9)
                   {
                       extension = 2;
-                      depth += depth < 12;
+                      depth += depth < 12 && !ttCapture;
                   }
               }
 
