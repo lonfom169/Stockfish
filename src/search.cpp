@@ -84,6 +84,11 @@ namespace {
     return std::min((12 * d + 282) * d - 349 , 1594);
   }
 
+  int contHistPrunThreshold(Depth d) {
+    int chpt[9] = {-200, -6500, -10000, -12800, -15500, -18600, -21000, -24100, -27000};
+    return chpt[d];
+  }
+
   // Add a small random component to draw evaluations to avoid 3-fold blindness
   Value value_draw(const Thread* thisThread) {
     return VALUE_DRAW - 1 + Value(thisThread->nodes & 0x2);
@@ -1016,7 +1021,8 @@ moves_loop: // When in check, search starts here
 
               // Continuation history based pruning (~2 Elo)
               if (   lmrDepth < 5
-                  && history < -3875 * (depth - 1))
+                  && depth < 10
+                  && history < contHistPrunThreshold(depth - 1))
                   continue;
 
               history += 2 * thisThread->mainHistory[us][from_to(move)];
