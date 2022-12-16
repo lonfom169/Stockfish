@@ -1019,7 +1019,7 @@ moves_loop: // When in check, search starts here
                   && history < -3875 * (depth - 1))
                   continue;
 
-              history += 2 * thisThread->mainHistory[us][from_to(move)];
+              history += 2 * thisThread->mainHistory[us][from_to(move)] - 4433;
 
               // Futility pruning: parent node (~9 Elo)
               if (   !ss->inCheck
