@@ -599,12 +599,13 @@ namespace {
 
     assert(0 <= ss->ply && ss->ply < MAX_PLY);
 
-    (ss+1)->ttPv         = false;
-    (ss+1)->excludedMove = bestMove = MOVE_NONE;
-    (ss+2)->killers[0]   = (ss+2)->killers[1] = MOVE_NONE;
-    (ss+2)->cutoffCnt    = 0;
-    ss->doubleExtensions = (ss-1)->doubleExtensions;
-    Square prevSq        = to_sq((ss-1)->currentMove);
+    (ss+1)->ttPv            = false;
+    (ss+1)->shallowerSearch = false;
+    (ss+1)->excludedMove    = bestMove = MOVE_NONE;
+    (ss+2)->killers[0]      = (ss+2)->killers[1] = MOVE_NONE;
+    (ss+2)->cutoffCnt       = 0;
+    ss->doubleExtensions    = (ss-1)->doubleExtensions;
+    Square prevSq           = to_sq((ss-1)->currentMove);
 
     // Initialize statScore to zero for the grandchildren of the current position.
     // So statScore is shared between all grandchildren and only the first grandchild
@@ -1168,6 +1169,9 @@ moves_loop: // When in check, search starts here
           if ((ss+1)->cutoffCnt > 3)
               r++;
 
+          if (ss->shallowerSearch)
+              r++;
+
           ss->statScore =  2 * thisThread->mainHistory[us][from_to(move)]
                          + (*contHist[0])[movedPiece][to_sq(move)]
                          + (*contHist[1])[movedPiece][to_sq(move)]
@@ -1195,7 +1199,11 @@ moves_loop: // When in check, search starts here
               newDepth += doDeeperSearch - doShallowerSearch;
 
               if (newDepth > d)
+              {
+                  (ss+1)->shallowerSearch = doShallowerSearch;
                   value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
+                  (ss+1)->shallowerSearch = false;
+              }
 
               int bonus = value > alpha ?  stat_bonus(newDepth)
                                         : -stat_bonus(newDepth);
