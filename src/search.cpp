@@ -1016,7 +1016,7 @@ moves_loop: // When in check, search starts here
 
               // Continuation history based pruning (~2 Elo)
               if (   lmrDepth < 5
-                  && history < -3875 * (depth - 1))
+                  && history < (-3000 - PvNode * 1000) * (depth - 1))
                   continue;
 
               history += 2 * thisThread->mainHistory[us][from_to(move)];
