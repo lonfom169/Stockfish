@@ -1000,7 +1000,7 @@ moves_loop: // When in check, search starts here
                   && !PvNode
                   && lmrDepth < 7
                   && !ss->inCheck
-                  && ss->staticEval + 180 + 201 * lmrDepth + PieceValue[EG][pos.piece_on(to_sq(move))]
+                  && ss->staticEval + 60 * bool(thisThread->nodes & 1) + 180 + 201 * lmrDepth + PieceValue[EG][pos.piece_on(to_sq(move))]
                    + captureHistory[movedPiece][to_sq(move)][type_of(pos.piece_on(to_sq(move)))] / 6 < alpha)
                   continue;
 
@@ -1016,7 +1016,7 @@ moves_loop: // When in check, search starts here
 
               // Continuation history based pruning (~2 Elo)
               if (   lmrDepth < 5
-                  && history < -3875 * (depth - 1))
+                  && history < (-3875 - 200 * bool(thisThread->nodes & 1)) * (depth - 1))
                   continue;
 
               history += 2 * thisThread->mainHistory[us][from_to(move)];
@@ -1024,7 +1024,7 @@ moves_loop: // When in check, search starts here
               // Futility pruning: parent node (~9 Elo)
               if (   !ss->inCheck
                   && lmrDepth < 13
-                  && ss->staticEval + 106 + 145 * lmrDepth + history / 52 <= alpha)
+                  && ss->staticEval + 60 * bool(thisThread->nodes & 1) + 106 + 145 * lmrDepth + history / 52 <= alpha)
                   continue;
 
               // Prune moves with negative SEE (~3 Elo)
