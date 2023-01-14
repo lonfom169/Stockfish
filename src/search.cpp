@@ -367,7 +367,7 @@ void Thread::search() {
           // Start with a small aspiration window and, in the case of a fail
           // high/low, re-search with a bigger window until we don't fail
           // high/low anymore.
-          int failedHighCnt = 0;
+          failedHighCnt = 0;
           while (true)
           {
               // Adjust the effective depth searched, but ensuring at least one effective increment for every
@@ -1105,6 +1105,11 @@ moves_loop: // When in check, search starts here
                    && (*contHist[0])[movedPiece][to_sq(move)] >= 5600)
               extension = 1;
       }
+
+      if (   rootNode
+          && depth > 1
+          && thisThread->failedHighCnt)
+          extension = -1;
 
       // Add extension to new depth
       newDepth += extension;
