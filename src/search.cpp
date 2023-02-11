@@ -1327,6 +1327,7 @@ moves_loop: // When in check, search starts here
               else
               {
                   ss->cutoffCnt++;
+                  thisThread->mainHistory[us][from_to(move)] << (value - alpha) * 8;
                   assert(value >= beta); // Fail high
                   break;
               }
