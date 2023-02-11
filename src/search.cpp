@@ -1025,6 +1025,12 @@ moves_loop: // When in check, search starts here
                   && history < -4180 * (depth - 1))
                   continue;
 
+              if (lmrDepth < 5 && !(thisThread->nodes & 0xB))
+              {
+                  moveCount--;
+                  continue;
+              }
+
               history += 2 * thisThread->mainHistory[us][from_to(move)];
 
               lmrDepth += history / 7208;
