@@ -315,6 +315,7 @@ void Thread::search() {
   optimism[us] = optimism[~us] = VALUE_ZERO;
 
   int searchAgainCounter = 0;
+  int stableCnt = 0;
 
   // Iterative deepening loop until requested to stop or the target depth is reached
   while (   ++rootDepth < MAX_PLY
@@ -370,6 +371,16 @@ void Thread::search() {
           int failedHighCnt = 0;
           while (true)
           {
+              if (bestMoveChanges)
+                  stableCnt = 0;
+              else
+                  stableCnt++;
+
+              if (failedHighCnt >= 2 && stableCnt > 20)
+                  exclMove = rootMoves[0].pv[0];
+              else
+                  exclMove = MOVE_NONE;
+
               // Adjust the effective depth searched, but ensuring at least one effective increment for every
               // four searchAgain steps (see issue #2717).
               Depth adjustedDepth = std::max(1, rootDepth - failedHighCnt - 3 * (searchAgainCounter + 1) / 4);
@@ -954,6 +965,9 @@ moves_loop: // When in check, search starts here
       assert(is_ok(move));
 
       if (move == excludedMove)
+          continue;
+
+      if (rootNode && move == thisThread->exclMove)
           continue;
 
       // At root obey the "searchmoves" option and skip moves not listed in Root
