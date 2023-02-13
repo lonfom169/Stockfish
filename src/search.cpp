@@ -947,6 +947,8 @@ moves_loop: // When in check, search starts here
                          && (tte->bound() & BOUND_UPPER)
                          && tte->depth() >= depth;
 
+    bool sing = false;
+
     // Step 13. Loop through all pseudo-legal moves until no moves remain
     // or a beta cutoff occurs.
     while ((move = mp.next_move(moveCountPruning)) != MOVE_NONE)
@@ -1075,6 +1077,8 @@ moves_loop: // When in check, search starts here
                   extension = 1;
                   singularQuietLMR = !ttCapture;
 
+                  sing = singularBeta - value < 5;
+
                   // Avoid search explosion by limiting the number of double extensions
                   if (  !PvNode
                       && value < singularBeta - 25
@@ -1113,6 +1117,10 @@ moves_loop: // When in check, search starts here
                    && move == ttMove
                    && move == ss->killers[0]
                    && (*contHist[0])[movedPiece][to_sq(move)] >= 5600)
+              extension = 1;
+
+          else if (   sing
+                   && moveCount < 5)
               extension = 1;
       }
 
