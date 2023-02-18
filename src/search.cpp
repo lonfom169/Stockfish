@@ -896,13 +896,6 @@ namespace {
 
     // Step 11. If the position is not in TT, decrease depth by 3.
     // Use qsearch if depth is equal or below zero (~9 Elo)
-    if (    PvNode
-        && !ttMove)
-        depth -= 3;
-
-    if (depth <= 0)
-        return qsearch<PV>(pos, ss, alpha, beta);
-
     if (    cutNode
         &&  depth >= 9
         && !ttMove)
@@ -976,6 +969,14 @@ moves_loop: // When in check, search starts here
                     << " currmovenumber " << moveCount + thisThread->pvIdx << sync_endl;
       if (PvNode)
           (ss+1)->pv = nullptr;
+
+    if (    PvNode
+        && !ttMove
+        && moveCount == 3)
+        depth -= 3;
+
+    if (depth <= 0)
+        return qsearch<PV>(pos, ss, alpha, beta);
 
       extension = 0;
       capture = pos.capture(move);
