@@ -169,8 +169,7 @@ enum ScaleFactor {
 enum Bound {
   BOUND_NONE,
   BOUND_UPPER,
-  BOUND_LOWER,
-  BOUND_EXACT = BOUND_UPPER | BOUND_LOWER
+  BOUND_LOWER
 };
 
 enum Value : int {

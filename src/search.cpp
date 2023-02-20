@@ -633,7 +633,7 @@ namespace {
     if (  !PvNode
         && ss->ttHit
         && !excludedMove
-        && tte->depth() > depth - (tte->bound() == BOUND_EXACT)
+        && tte->depth() > depth
         && ttValue != VALUE_NONE // Possible in case of TT access race
         && (tte->bound() & (ttValue >= beta ? BOUND_LOWER : BOUND_UPPER)))
     {
@@ -693,11 +693,9 @@ namespace {
                        : wdl >  drawScore ? VALUE_MATE_IN_MAX_PLY - ss->ply - 1
                                           : VALUE_DRAW + 2 * wdl * drawScore;
 
-                Bound b =  wdl < -drawScore ? BOUND_UPPER
-                         : wdl >  drawScore ? BOUND_LOWER : BOUND_EXACT;
+                Bound b =  wdl > drawScore ? BOUND_LOWER : BOUND_UPPER;
 
-                if (    b == BOUND_EXACT
-                    || (b == BOUND_LOWER ? value >= beta : value <= alpha))
+                if (b == BOUND_LOWER ? value >= beta : value <= alpha)
                 {
                     tte->save(posKey, value_to_tt(value, ss->ply), ss->ttPv, b,
                               std::min(MAX_PLY - 1, depth + 6),
@@ -1389,8 +1387,7 @@ moves_loop: // When in check, search starts here
     // Write gathered information in transposition table
     if (!excludedMove && !(rootNode && thisThread->pvIdx))
         tte->save(posKey, value_to_tt(bestValue, ss->ply), ss->ttPv,
-                  bestValue >= beta ? BOUND_LOWER :
-                  PvNode && bestMove ? BOUND_EXACT : BOUND_UPPER,
+                  bestValue >= beta ? BOUND_LOWER : BOUND_UPPER,
                   depth, bestMove, ss->staticEval);
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
