@@ -1500,7 +1500,10 @@ moves_loop: // When in check, search starts here
         }
 
         if (PvNode && bestValue > alpha)
+        {
             alpha = bestValue;
+            depth++;
+        }
 
         futilityBase = bestValue + 158;
     }
