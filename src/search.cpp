@@ -940,6 +940,8 @@ moves_loop: // When in check, search starts here
     value = bestValue;
     moveCountPruning = singularQuietLMR = false;
 
+    bool dblExt = false;
+
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal or greater than the current depth, and the result of this search was a fail low.
     bool likelyFailLow =    PvNode
@@ -1083,6 +1085,7 @@ moves_loop: // When in check, search starts here
                       && ss->doubleExtensions <= 10)
                   {
                       extension = 2;
+                      dblExt = true;
                       depth += depth < 12;
                   }
               }
@@ -1231,7 +1234,7 @@ moves_loop: // When in check, search starts here
                if (!ttMove && cutNode)
                          r += 2;
 
-               value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth - (r > 4), !cutNode);
+               value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth - (r > 4 && !(dblExt && move != ttMove)), !cutNode);
       }
 
       // For PV nodes only, do a full PV search on the first move or after a fail
