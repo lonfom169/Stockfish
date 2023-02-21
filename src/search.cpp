@@ -1505,6 +1505,10 @@ moves_loop: // When in check, search starts here
         futilityBase = bestValue + 158;
     }
 
+    if (    PvNode
+        && !ttMove)
+        depth--;
+
     const PieceToHistory* contHist[] = { (ss-1)->continuationHistory, (ss-2)->continuationHistory,
                                           nullptr                   , (ss-4)->continuationHistory,
                                           nullptr                   , (ss-6)->continuationHistory };
