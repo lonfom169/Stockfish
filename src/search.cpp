@@ -1705,6 +1705,7 @@ moves_loop: // When in check, search starts here
     Piece moved_piece = pos.moved_piece(bestMove);
     PieceType captured = type_of(pos.piece_on(to_sq(bestMove)));
     int bonus1 = stat_bonus(depth + 1);
+    int bonus3 = stat_bonus(depth);
 
     if (!pos.capture(bestMove))
     {
@@ -1723,7 +1724,7 @@ moves_loop: // When in check, search starts here
     }
     else
         // Increase stats for the best move in case it was a capture move
-        captureHistory[moved_piece][to_sq(bestMove)][captured] << bonus1;
+        captureHistory[moved_piece][to_sq(bestMove)][captured] << bonus3;
 
     // Extra penalty for a quiet early move that was not a TT move or
     // main killer move in previous ply when it gets refuted.
