@@ -1013,7 +1013,7 @@ moves_loop: // When in check, search starts here
                   continue;
 
               // SEE based pruning (~11 Elo)
-              if (!pos.see_ge(move, Value(-220) * depth))
+              if (!pos.see_ge(move, Value(-220 - std::max(captureHistory[movedPiece][to_sq(move)][type_of(pos.piece_on(to_sq(move)))] / 32, 0)) * depth))
                   continue;
           }
           else
