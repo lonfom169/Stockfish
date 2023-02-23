@@ -778,7 +778,7 @@ namespace {
     // return a fail low.
     if (eval < alpha - 394 - 255 * depth * depth)
     {
-        value = qsearch<NonPV>(pos, ss, alpha - 1, alpha);
+        value = qsearch<NonPV>(pos, ss, alpha - 1, alpha, 1);
         if (value < alpha)
             return value;
     }
@@ -1410,7 +1410,6 @@ moves_loop: // When in check, search starts here
 
     assert(alpha >= -VALUE_INFINITE && alpha < beta && beta <= VALUE_INFINITE);
     assert(PvNode || (alpha == beta - 1));
-    assert(depth <= 0);
 
     Move pv[MAX_PLY+1];
     StateInfo st;
