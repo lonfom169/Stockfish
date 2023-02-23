@@ -662,7 +662,12 @@ namespace {
         // Partial workaround for the graph history interaction problem
         // For high rule50 counts don't produce transposition table cutoffs.
         if (pos.rule50_count() < 90)
-            return ttValue;
+        {
+            if (tte->depth() == depth)
+                depth = std::max(depth - 4, 1);
+            else
+                return ttValue;
+        }
     }
 
     // Step 5. Tablebases probe
