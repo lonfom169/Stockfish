@@ -1075,7 +1075,7 @@ moves_loop: // When in check, search starts here
               if (value < singularBeta)
               {
                   extension = 1;
-                  singularQuietLMR = !ttCapture;
+                  singularQuietLMR = !ttCapture && (*contHist[0])[movedPiece][to_sq(move)] < 0;
 
                   // Avoid search explosion by limiting the number of double extensions
                   if (  !PvNode
