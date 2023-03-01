@@ -1057,6 +1057,7 @@ moves_loop: // When in check, search starts here
       // We take care to not overdo to avoid search getting stuck.
       if (ss->ply < thisThread->rootDepth * 2)
       {
+          Value sValue = ttMove ? ttValue : eval;
           // Singular extension search (~94 Elo). If all moves but one fail low on a
           // search of (alpha-s, beta-s), and just one fails high on (alpha, beta),
           // then that move is singular and should be extended. To verify this we do
@@ -1064,14 +1065,14 @@ moves_loop: // When in check, search starts here
           // result is lower than ttValue minus a margin, then we will extend the ttMove.
           if (   !rootNode
               &&  depth >= 4 - (thisThread->completedDepth > 21) + 2 * (PvNode && tte->is_pv())
-              &&  move == ttMove
+              &&  moveCount == 1
               && !excludedMove // Avoid recursive singular search
            /* &&  ttValue != VALUE_NONE Already implicit in the next condition */
-              &&  abs(ttValue) < VALUE_KNOWN_WIN
+              &&  abs(sValue) < VALUE_KNOWN_WIN
               && (tte->bound() & BOUND_LOWER)
               &&  tte->depth() >= depth - 3)
           {
-              Value singularBeta = ttValue - (2 + (ss->ttPv && !PvNode)) * depth;
+              Value singularBeta = sValue - (2 + (ss->ttPv && !PvNode)) * depth;
               Depth singularDepth = (depth - 1) / 2;
 
               ss->excludedMove = move;
@@ -1103,11 +1104,11 @@ moves_loop: // When in check, search starts here
                   return singularBeta;
 
               // If the eval of ttMove is greater than beta, we reduce it (negative extension)
-              else if (ttValue >= beta)
+              else if (sValue >= beta)
                   extension = -2;
 
               // If the eval of ttMove is less than value, we reduce it (negative extension)
-              else if (ttValue <= value)
+              else if (sValue <= value)
                   extension = -1;
           }
 
