@@ -1156,6 +1156,10 @@ moves_loop: // When in check, search starts here
       if (cutNode)
           r += 2;
 
+      if (  !ttMove
+          && eval >= beta)
+          r++;
+
       // Increase reduction if ttMove is a capture (~3 Elo)
       if (ttCapture)
           r++;
