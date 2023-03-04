@@ -631,7 +631,7 @@ namespace {
         ss->ttPv = PvNode || (ss->ttHit && tte->is_pv());
 
     // At non-PV nodes we check for an early TT cutoff
-    if (  !PvNode
+    if (  (!PvNode || ttValue < alpha - 140 * depth)
         && ss->ttHit
         && !excludedMove
         && tte->depth() > depth - (tte->bound() == BOUND_EXACT)
