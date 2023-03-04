@@ -63,7 +63,7 @@ public:
   RunningAverage complexityAverage;
   std::atomic<uint64_t> nodes, tbHits, bestMoveChanges;
   int selDepth, nmpMinPly;
-  Color nmpColor;
+  Color nmpColor, rootColor;
   Value bestValue, optimism[COLOR_NB];
 
   Position rootPos;
@@ -75,6 +75,7 @@ public:
   ButterflyHistory mainHistory;
   CapturePieceToHistory captureHistory;
   ContinuationHistory continuationHistory[2][2];
+  bool drawStm;
 };
 
 

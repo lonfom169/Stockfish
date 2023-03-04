@@ -350,6 +350,12 @@ void Thread::search() {
           // Reset UCI info selDepth for each depth and each PV line
           selDepth = 0;
 
+          if (   rootMoves[0].score < VALUE_DRAW
+              && !Options["UCI_AnalyseMode"])
+              drawStm = true;
+          else
+              drawStm = false;
+
           // Reset aspiration window starting size
           if (rootDepth >= 4)
           {
@@ -528,10 +534,10 @@ namespace {
     // if the opponent had an alternative move earlier to this position.
     if (   !rootNode
         && pos.rule50_count() >= 3
-        && alpha < VALUE_DRAW
+        && alpha < VALUE_DRAW + 30000 * (pos.this_thread()->rootColor == pos.side_to_move()) * pos.this_thread()->drawStm
         && pos.has_game_cycle(ss->ply))
     {
-        alpha = value_draw(pos.this_thread());
+        alpha = value_draw(pos.this_thread()) + 30000 * (pos.this_thread()->rootColor == pos.side_to_move()) * pos.this_thread()->drawStm;
         if (alpha >= beta)
             return alpha;
     }
@@ -583,7 +589,7 @@ namespace {
             || pos.is_draw(ss->ply)
             || ss->ply >= MAX_PLY)
             return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos)
-                                                        : value_draw(pos.this_thread());
+                                                        : value_draw(pos.this_thread()) + 30000 * (thisThread->rootColor == pos.side_to_move()) * thisThread->drawStm;
 
         // Step 3. Mate distance pruning. Even if we mate at the next move our score
         // would be at best mate_in(ss->ply+1), but if alpha is already bigger because
@@ -1448,7 +1454,7 @@ moves_loop: // When in check, search starts here
     // Step 2. Check for an immediate draw or maximum ply reached
     if (   pos.is_draw(ss->ply)
         || ss->ply >= MAX_PLY)
-        return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos) : VALUE_DRAW;
+        return (ss->ply >= MAX_PLY && !ss->inCheck) ? evaluate(pos) : VALUE_DRAW + 30000 * (thisThread->rootColor == pos.side_to_move()) * thisThread->drawStm;
 
     assert(0 <= ss->ply && ss->ply < MAX_PLY);
 
