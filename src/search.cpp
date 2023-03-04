@@ -954,6 +954,8 @@ moves_loop: // When in check, search starts here
                          && (tte->bound() & BOUND_UPPER)
                          && tte->depth() >= depth;
 
+    bool ttCaptF = false;
+
     // Step 13. Loop through all pseudo-legal moves until no moves remain
     // or a beta cutoff occurs.
     while ((move = mp.next_move(moveCountPruning)) != MOVE_NONE)
@@ -1158,7 +1160,7 @@ moves_loop: // When in check, search starts here
 
       // Increase reduction if ttMove is a capture (~3 Elo)
       if (ttCapture)
-          r++;
+          r += !ttCaptF;
 
       // Decrease reduction for PvNodes based on depth
       if (PvNode)
@@ -1341,6 +1343,9 @@ moves_loop: // When in check, search starts here
                   break;
               }
           }
+          else if (   move == ttMove
+                   && ttCapture)
+              ttCaptF = true;
       }
 
 
