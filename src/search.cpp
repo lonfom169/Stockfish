@@ -1125,6 +1125,12 @@ moves_loop: // When in check, search starts here
                    && move == ss->killers[0]
                    && (*contHist[0])[movedPiece][to_sq(move)] >= 5705)
               extension = 1;
+
+          else if (   cutNode
+                   && move == ttMove
+                   && ttCapture
+                   && captureHistory[movedPiece][to_sq(move)][type_of(pos.piece_on(to_sq(move)))] > 4000)
+              extension = 1;
       }
 
       // Add extension to new depth
