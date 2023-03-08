@@ -1390,6 +1390,8 @@ moves_loop: // When in check, search starts here
         int bonus = (depth > 5) + (PvNode || cutNode) + (bestValue < alpha - 97 * depth) + ((ss-1)->moveCount > 10);
         update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, stat_bonus(depth) * bonus);
     }
+    else
+        captureHistory[pos.piece_on(prevSq)][prevSq][type_of(pos.piece_on(prevSq))] << stat_bonus(depth);
 
     if (PvNode)
         bestValue = std::min(bestValue, maxValue);
