@@ -1084,6 +1084,7 @@ moves_loop: // When in check, search starts here
 
                   // Avoid search explosion by limiting the number of double extensions
                   if (  !PvNode
+                      && tte->depth() >= depth - 1
                       && value < singularBeta - 25
                       && ss->doubleExtensions <= 10)
                   {
