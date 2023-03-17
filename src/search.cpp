@@ -1231,6 +1231,9 @@ moves_loop: // When in check, search starts here
 
               update_continuation_histories(ss, movedPiece, to_sq(move), bonus);
           }
+
+          if (value <= alpha - 200)
+              update_continuation_histories(ss, movedPiece, to_sq(move), -stat_bonus(d));
       }
 
       // Step 18. Full depth search when LMR is skipped. If expected reduction is high, reduce its depth by 1.
