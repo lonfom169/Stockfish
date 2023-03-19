@@ -994,6 +994,8 @@ moves_loop: // When in check, search starts here
 
       Value delta = beta - alpha;
 
+      bool almostFutPruned = false;
+
       Depth r = reduction(improving, depth, moveCount, delta, thisThread->rootDelta);
 
       // Step 14. Pruning at shallow depth (~120 Elo). Depth conditions are important for mate finding.
@@ -1041,9 +1043,13 @@ moves_loop: // When in check, search starts here
 
               // Futility pruning: parent node (~13 Elo)
               if (   !ss->inCheck
-                  && lmrDepth < 13
-                  && ss->staticEval + 103 + 138 * lmrDepth <= alpha)
-                  continue;
+                  && lmrDepth < 13)
+              {
+                  if (ss->staticEval + 103 + 138 * lmrDepth <= alpha)
+                      continue;
+                  else if (ss->staticEval + 103 + 138 * lmrDepth <= alpha + 20)
+                      almostFutPruned = true;
+              }
 
               lmrDepth = std::max(lmrDepth, 0);
 
@@ -1158,6 +1164,9 @@ moves_loop: // When in check, search starts here
       // Increase reduction for cut nodes (~3 Elo)
       if (cutNode)
           r += 2;
+
+      if (almostFutPruned)
+          r++;
 
       // Increase reduction if ttMove is a capture (~3 Elo)
       if (ttCapture)
