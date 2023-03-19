@@ -70,9 +70,43 @@ namespace {
   // Reductions lookup table, initialized at startup
   int Reductions[MAX_MOVES]; // [depth or moveNumber]
 
-  Depth reduction(bool i, Depth d, int mn, Value delta, Value rootDelta) {
-    int r = Reductions[d] * Reductions[mn];
-    return (r + 1449 - int(delta) * 1032 / int(rootDelta)) / 1024 + (!i && r > 941);
+  Depth reduction(bool i, Depth d, int mn, Value delta, Value rootDelta, bool ttPv, bool lfl, int prevMc, bool cn, bool ttCapt,
+                  bool pv, bool threat, int cutoffCnt) {
+    int initialR = Reductions[d] * Reductions[mn];
+    int r = (initialR + 1449 - int(delta) * 1032 / int(rootDelta)) / 1024 + (!i && initialR > 941);
+
+    // Decrease reduction if position is or has been on the PV
+    // and node is not likely to fail low. (~3 Elo)
+    if (   ttPv
+        && !lfl)
+        r -= 2;
+
+    // Decrease reduction if opponent's move count is high (~1 Elo)
+    if (prevMc > 7)
+        r--;
+
+    // Increase reduction for cut nodes (~3 Elo)
+    if (cn)
+        r += 2;
+
+    // Increase reduction if ttMove is a capture (~3 Elo)
+    if (ttCapt)
+        r++;
+
+    // Decrease reduction for PvNodes based on depth
+    if (pv)
+        r -= 1 + 12 / (3 + d);
+
+    // Decrease reduction if we move a threatened piece (~1 Elo)
+    if (   d > 9
+        && threat)
+        r--;
+
+    // Increase reduction if next ply has a lot of fail high
+    if (cutoffCnt > 3)
+        r++;
+
+    return r;
   }
 
   constexpr int futility_move_count(bool improving, Depth depth) {
@@ -994,7 +1028,8 @@ moves_loop: // When in check, search starts here
 
       Value delta = beta - alpha;
 
-      Depth r = reduction(improving, depth, moveCount, delta, thisThread->rootDelta);
+      Depth r = reduction(improving, depth, moveCount, delta, thisThread->rootDelta, ss->ttPv, likelyFailLow, (ss-1)->moveCount,
+                          cutNode, ttCapture, PvNode, bool(mp.threatenedPieces & from_sq(move)), (ss+1)->cutoffCnt);
 
       // Step 14. Pruning at shallow depth (~120 Elo). Depth conditions are important for mate finding.
       if (  !rootNode
@@ -1145,40 +1180,9 @@ moves_loop: // When in check, search starts here
       // Step 16. Make the move
       pos.do_move(move, st, givesCheck);
 
-      // Decrease reduction if position is or has been on the PV
-      // and node is not likely to fail low. (~3 Elo)
-      if (   ss->ttPv
-          && !likelyFailLow)
-          r -= 2;
-
-      // Decrease reduction if opponent's move count is high (~1 Elo)
-      if ((ss-1)->moveCount > 7)
-          r--;
-
-      // Increase reduction for cut nodes (~3 Elo)
-      if (cutNode)
-          r += 2;
-
-      // Increase reduction if ttMove is a capture (~3 Elo)
-      if (ttCapture)
-          r++;
-
-      // Decrease reduction for PvNodes based on depth
-      if (PvNode)
-          r -= 1 + 12 / (3 + depth);
-
       // Decrease reduction if ttMove has been singularly extended (~1 Elo)
       if (singularQuietLMR)
           r--;
-
-      // Decrease reduction if we move a threatened piece (~1 Elo)
-      if (   depth > 9
-          && (mp.threatenedPieces & from_sq(move)))
-          r--;
-
-      // Increase reduction if next ply has a lot of fail high
-      if ((ss+1)->cutoffCnt > 3)
-          r++;
 
       // Decrease reduction if move is a killer and we have a good history
       if (move == ss->killers[0]
