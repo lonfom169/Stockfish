@@ -1624,7 +1624,12 @@ moves_loop: // When in check, search starts here
                   update_pv(ss->pv, move, (ss+1)->pv);
 
               if (PvNode && value < beta) // Update alpha here!
+              {
+                  if (depth < -2)
+                      break;
+
                   alpha = value;
+              }
               else
                   break; // Fail high
           }
