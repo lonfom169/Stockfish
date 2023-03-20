@@ -1034,6 +1034,10 @@ moves_loop: // When in check, search starts here
                   && history < -4405 * (depth - 1))
                   continue;
 
+              // Prune moves with negative SEE (~4 Elo)
+              if (!pos.see_ge(move, Value(-24 * lmrDepth * lmrDepth - 15 * lmrDepth)))
+                  continue;
+
               history += 2 * thisThread->mainHistory[us][from_to(move)];
 
               lmrDepth += history / 7278;
@@ -1043,12 +1047,6 @@ moves_loop: // When in check, search starts here
               if (   !ss->inCheck
                   && lmrDepth < 13
                   && ss->staticEval + 103 + 138 * lmrDepth <= alpha)
-                  continue;
-
-              lmrDepth = std::max(lmrDepth, 0);
-
-              // Prune moves with negative SEE (~4 Elo)
-              if (!pos.see_ge(move, Value(-24 * lmrDepth * lmrDepth - 15 * lmrDepth)))
                   continue;
           }
       }
