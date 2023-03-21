@@ -1145,6 +1145,8 @@ moves_loop: // When in check, search starts here
       // Step 16. Make the move
       pos.do_move(move, st, givesCheck);
 
+      int initialR = r;
+
       // Decrease reduction if position is or has been on the PV
       // and node is not likely to fail low. (~3 Elo)
       if (   ss->ttPv
@@ -1193,6 +1195,9 @@ moves_loop: // When in check, search starts here
 
       // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
       r -= ss->statScore / (11791 + 3992 * (depth > 6 && depth < 19));
+
+      if (PvNode)
+          r = std::clamp(r, initialR - 3, initialR + 3);
 
       // Step 17. Late moves reduction / extension (LMR, ~117 Elo)
       // We use various heuristics for the sons of a node after the first son has
