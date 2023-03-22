@@ -1007,6 +1007,10 @@ moves_loop: // When in check, search starts here
           // Reduced depth of the next LMR search
           int lmrDepth = std::max(newDepth - r, 0);
 
+          if (   !ttMove
+              && cutNode)
+              lmrDepth--;
+
           if (   capture
               || givesCheck)
           {
