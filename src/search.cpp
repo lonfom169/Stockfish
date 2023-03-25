@@ -1211,6 +1211,12 @@ moves_loop: // When in check, search starts here
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
 
+          if (!PvNode && !ttMove && value <= alpha - 500)
+          {
+              pos.undo_move(move);
+              continue;
+          }
+
           // Do full depth search when reduced LMR search fails high
           if (value > alpha && d < newDepth)
           {
