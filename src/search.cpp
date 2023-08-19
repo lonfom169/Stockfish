@@ -1353,7 +1353,7 @@ moves_loop: // When in check, search starts here
     else if (!priorCapture && prevSq != SQ_NONE)
     {
         int bonus = (depth > 5) + (PvNode || cutNode) + (bestValue < alpha - 800) + ((ss-1)->moveCount > 12);
-        update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, stat_bonus(depth) * bonus);
+        update_continuation_histories(ss-1, pos.piece_on(prevSq), prevSq, std::max(depth > 2 ? (depth - 2) * 200 : 0, stat_bonus(depth) * bonus));
         thisThread->mainHistory[~us][from_to((ss-1)->currentMove)] << stat_bonus(depth) * bonus / 2;
     }
 
