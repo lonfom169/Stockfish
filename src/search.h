@@ -50,6 +50,7 @@ struct Stack {
   bool inCheck;
   bool ttPv;
   bool ttHit;
+  Depth depth;
   int doubleExtensions;
   int cutoffCnt;
 };

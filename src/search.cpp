@@ -607,6 +607,7 @@ namespace {
     ss->doubleExtensions = (ss-1)->doubleExtensions;
     Square prevSq        = is_ok((ss-1)->currentMove) ? to_sq((ss-1)->currentMove) : SQ_NONE;
     ss->statScore        = 0;
+    ss->depth = depth;
 
     // Step 4. Transposition table lookup.
     excludedMove = ss->excludedMove;
@@ -1148,6 +1149,8 @@ moves_loop: // When in check, search starts here
       // Decrease reduction for PvNodes (~2 Elo)
       if (PvNode)
           r--;
+      else if (depth > (ss-1)->depth + 3)
+          r++;
 
       // Decrease reduction if ttMove has been singularly extended (~1 Elo)
       if (singularQuietLMR)
