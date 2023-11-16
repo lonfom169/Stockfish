@@ -415,6 +415,7 @@ void Thread::search() {
                     alpha = std::max(bestValue - delta, -VALUE_INFINITE);
 
                     failedHighCnt = 0;
+                    delta += delta / 3;
                     if (mainThread)
                         mainThread->stopOnPonderhit = false;
                 }
@@ -422,11 +423,10 @@ void Thread::search() {
                 {
                     beta = std::min(bestValue + delta, VALUE_INFINITE);
                     ++failedHighCnt;
+                    delta += delta / 4;
                 }
                 else
                     break;
-
-                delta += delta / 3;
 
                 assert(alpha >= -VALUE_INFINITE && beta <= VALUE_INFINITE);
             }
