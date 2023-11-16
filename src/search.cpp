@@ -1123,6 +1123,13 @@ moves_loop:  // When in check, search starts here
         // Step 16. Make the move
         pos.do_move(move, st, givesCheck);
 
+        // Step 17. Late moves reduction / extension (LMR, ~117 Elo)
+        // We use various heuristics for the sons of a node after the first son has
+        // been searched. In general, we would like to reduce them, but there are many
+        // cases where we extend a son if it has good chances to be "interesting".
+        if (depth >= 2 && moveCount > 1 + (PvNode && ss->ply <= 1)
+            && (!ss->ttPv || !capture || (cutNode && (ss - 1)->moveCount > 1)))
+        {
         // Decrease reduction if position is or has been on the PV (~4 Elo)
         if (ss->ttPv && !likelyFailLow)
             r -= cutNode && tte->depth() >= depth ? 3 : 2;
@@ -1168,13 +1175,6 @@ moves_loop:  // When in check, search starts here
         // Decrease/increase reduction for moves with a good/bad history (~25 Elo)
         r -= ss->statScore / (10216 + 3855 * (depth > 5 && depth < 23));
 
-        // Step 17. Late moves reduction / extension (LMR, ~117 Elo)
-        // We use various heuristics for the sons of a node after the first son has
-        // been searched. In general, we would like to reduce them, but there are many
-        // cases where we extend a son if it has good chances to be "interesting".
-        if (depth >= 2 && moveCount > 1 + (PvNode && ss->ply <= 1)
-            && (!ss->ttPv || !capture || (cutNode && (ss - 1)->moveCount > 1)))
-        {
             // In general we want to cap the LMR depth search at newDepth, but when
             // reduction is negative, we allow this move a limited search extension
             // beyond the first move depth. This may lead to hidden double extensions.
@@ -1212,11 +1212,10 @@ moves_loop:  // When in check, search starts here
         else if (!PvNode || moveCount > 1)
         {
             // Increase reduction for cut nodes without ttMove (~1 Elo)
-            if (!ttMove && cutNode)
-                r += 2;
+            const bool doShallowerFs = !ttMove && cutNode;
 
             // Note that if expected reduction is high, we reduce search depth by 1 here
-            value = -search<NonPV>(pos, ss + 1, -(alpha + 1), -alpha, newDepth - (r > 3), !cutNode);
+            value = -search<NonPV>(pos, ss + 1, -(alpha + 1), -alpha, newDepth - doShallowerFs, !cutNode);
         }
 
         // For PV nodes only, do a full PV search on the first move or after a fail high,
