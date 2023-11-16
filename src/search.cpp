@@ -551,7 +551,7 @@ Value search(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth, boo
     TTEntry* tte;
     Key      posKey;
     Move     ttMove, move, excludedMove, bestMove;
-    Depth    extension, newDepth;
+    Depth    extension, newDepth, prevD;
     Value    bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool     givesCheck, improving, priorCapture, singularQuietLMR;
     bool     capture, moveCountPruning, ttCapture;
@@ -563,9 +563,9 @@ Value search(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth, boo
     ss->inCheck        = pos.checkers();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
-    moveCount = captureCount = quietCount = ss->moveCount = 0;
-    bestValue                                             = -VALUE_INFINITE;
-    maxValue                                              = VALUE_INFINITE;
+    moveCount = captureCount = quietCount = ss->moveCount = prevD = 0;
+    bestValue                                                     = -VALUE_INFINITE;
+    maxValue                                                      = VALUE_INFINITE;
 
     // Check for the available remaining time
     if (thisThread == Threads.main())
@@ -1181,6 +1181,11 @@ moves_loop:  // When in check, search starts here
             // To prevent problems when the max value is less than the min value,
             // std::clamp has been replaced by a more robust implementation.
             Depth d = std::max(1, std::min(newDepth - r, newDepth + 1));
+
+            if (d < prevD - 2)
+                d++;
+
+            prevD = d;
 
             value = -search<NonPV>(pos, ss + 1, -(alpha + 1), -alpha, d, true);
 
