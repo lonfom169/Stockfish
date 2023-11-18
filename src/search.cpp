@@ -1205,6 +1205,10 @@ moves_loop:  // When in check, search starts here
                                            : 0;
 
                 update_continuation_histories(ss, movedPiece, to_sq(move), bonus);
+
+                if (value >= beta + 200)
+                    thisThread->pawnHistory[pawn_structure(pos)][movedPiece][to_sq(move)]
+                      << bonus / 4;
             }
         }
 
