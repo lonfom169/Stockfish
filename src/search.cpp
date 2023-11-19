@@ -556,16 +556,16 @@ Value search(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth, boo
     bool     givesCheck, improving, priorCapture, singularQuietLMR;
     bool     capture, moveCountPruning, ttCapture;
     Piece    movedPiece;
-    int      moveCount, captureCount, quietCount;
+    int      moveCount, captureCount, quietCount, ddsMargin;
 
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
     ss->inCheck        = pos.checkers();
     priorCapture       = pos.captured_piece();
     Color us           = pos.side_to_move();
-    moveCount = captureCount = quietCount = ss->moveCount = 0;
-    bestValue                                             = -VALUE_INFINITE;
-    maxValue                                              = VALUE_INFINITE;
+    moveCount = captureCount = quietCount = ss->moveCount = ddsMargin = 0;
+    bestValue                                                         = -VALUE_INFINITE;
+    maxValue                                                          = VALUE_INFINITE;
 
     // Check for the available remaining time
     if (thisThread == Threads.main())
@@ -1189,7 +1189,8 @@ moves_loop:  // When in check, search starts here
             {
                 // Adjust full-depth search based on LMR results - if the result
                 // was good enough search deeper, if it was bad enough search shallower.
-                const bool doDeeperSearch     = value > (bestValue + 51 + 10 * (newDepth - d));
+                const bool doDeeperSearch =
+                  value > (bestValue + 51 + ddsMargin + 10 * (newDepth - d));
                 const bool doEvenDeeperSearch = value > alpha + 700 && ss->doubleExtensions <= 6;
                 const bool doShallowerSearch  = value < bestValue + newDepth;
 
@@ -1205,6 +1206,9 @@ moves_loop:  // When in check, search starts here
                                            : 0;
 
                 update_continuation_histories(ss, movedPiece, to_sq(move), bonus);
+
+                if (!doDeeperSearch)
+                    ddsMargin += 3;
             }
         }
 
