@@ -1089,7 +1089,7 @@ moves_loop:  // When in check, search starts here
 
                 // If the ttMove is assumed to fail low over the value of the reduced search (~1 Elo)
                 else if (ttValue <= value)
-                    extension = -1;
+                    extension = -1 - (value - ttValue > 86);
             }
 
             // Check extensions (~1 Elo)
