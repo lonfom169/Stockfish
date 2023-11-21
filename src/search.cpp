@@ -954,7 +954,7 @@ moves_loop:  // When in check, search starts here
             (ss + 1)->pv = nullptr;
 
         extension  = 0;
-        capture    = pos.capture_stage(move);
+        capture    = pos.capture_stage(move) || type_of(move) == PROMOTION;
         movedPiece = pos.moved_piece(move);
         givesCheck = pos.gives_check(move);
 
