@@ -909,11 +909,8 @@ moves_loop:  // When in check, search starts here
                                         nullptr,
                                         (ss - 6)->continuationHistory};
 
-    Move countermove =
-      prevSq != SQ_NONE ? thisThread->counterMoves[pos.piece_on(prevSq)][prevSq] : MOVE_NONE;
-
     MovePicker mp(pos, ttMove, depth, &thisThread->mainHistory, &captureHistory, contHist,
-                  &thisThread->pawnHistory, countermove, ss->killers);
+                  &thisThread->pawnHistory, ss->killers);
 
     value            = bestValue;
     moveCountPruning = singularQuietLMR = false;
@@ -1768,13 +1765,6 @@ void update_quiet_stats(const Position& pos, Stack* ss, Move move, int bonus) {
     Thread* thisThread = pos.this_thread();
     thisThread->mainHistory[us][from_to(move)] << bonus;
     update_continuation_histories(ss, pos.moved_piece(move), to_sq(move), bonus);
-
-    // Update countermove history
-    if (is_ok((ss - 1)->currentMove))
-    {
-        Square prevSq                                          = to_sq((ss - 1)->currentMove);
-        thisThread->counterMoves[pos.piece_on(prevSq)][prevSq] = move;
-    }
 }
 
 // When playing with strength handicap, choose the best move among a set of RootMoves
