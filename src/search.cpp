@@ -1514,7 +1514,7 @@ Value qsearch(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth) {
             if (!givesCheck && to_sq(move) != prevSq && futilityBase > VALUE_TB_LOSS_IN_MAX_PLY
                 && type_of(move) != PROMOTION)
             {
-                if (moveCount > 2)
+                if (moveCount > 2 + 2 * ttMove)
                     continue;
 
                 futilityValue = futilityBase + PieceValue[pos.piece_on(to_sq(move))];
