@@ -1593,7 +1593,10 @@ Value qsearch(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth) {
                 if (value < beta)  // Update alpha here!
                     alpha = value;
                 else
+                {
+                    ss->cutoffCnt++;
                     break;  // Fail high
+                }
             }
         }
     }
