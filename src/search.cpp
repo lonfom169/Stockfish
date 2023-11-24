@@ -1307,6 +1307,9 @@ moves_loop:  // When in check, search starts here
                     if (depth > 2 && depth < 12 && beta < 13828 && value > -11369)
                         depth -= 2;
 
+                    if (depth == 1 && move == ttMove)
+                        break;
+
                     assert(depth > 0);
                     alpha = value;  // Update alpha! Always alpha < beta
                 }
