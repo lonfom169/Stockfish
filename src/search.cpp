@@ -1591,7 +1591,12 @@ Value qsearch(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth) {
                     update_pv(ss->pv, move, (ss + 1)->pv);
 
                 if (value < beta)  // Update alpha here!
+                {
+                    if (move == ttMove)
+                        break;
+
                     alpha = value;
+                }
                 else
                     break;  // Fail high
             }
