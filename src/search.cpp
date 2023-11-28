@@ -1123,8 +1123,8 @@ moves_loop:  // When in check, search starts here
         pos.do_move(move, st, givesCheck);
 
         // Decrease reduction if position is or has been on the PV (~4 Elo)
-        if (ss->ttPv && !likelyFailLow)
-            r -= cutNode && tte->depth() >= depth ? 3 : 2;
+        if (ss->ttPv)
+            r -= cutNode && tte->depth() >= depth ? 3 : 2 - likelyFailLow;
 
         // Decrease reduction if opponent's move count is high (~1 Elo)
         if ((ss - 1)->moveCount > 7)
