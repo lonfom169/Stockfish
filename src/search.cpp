@@ -554,7 +554,7 @@ Value search(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth, boo
     Depth    extension, newDepth;
     Value    bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool     givesCheck, improving, priorCapture, singularQuietLMR;
-    bool     capture, moveCountPruning, ttCapture;
+    bool     capture, moveCountPruning, ttCapture, negExt;
     Piece    movedPiece;
     int      moveCount, captureCount, quietCount;
 
@@ -916,7 +916,7 @@ moves_loop:  // When in check, search starts here
                   &thisThread->pawnHistory, countermove, ss->killers);
 
     value            = bestValue;
-    moveCountPruning = singularQuietLMR = false;
+    moveCountPruning = singularQuietLMR = negExt = false;
 
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal to or greater than the current depth, and the result
@@ -1080,7 +1080,14 @@ moves_loop:  // When in check, search starts here
 
                 // If the ttMove is assumed to fail high over current beta (~7 Elo)
                 else if (ttValue >= beta)
-                    extension = -2 - !PvNode;
+                {
+                    extension = -2;
+                    if (!PvNode)
+                    {
+                        extension = -3;
+                        negExt    = true;
+                    }
+                }
 
                 // If we are on a cutNode but the ttMove is not assumed to fail high over current beta (~1 Elo)
                 else if (cutNode)
@@ -1133,6 +1140,9 @@ moves_loop:  // When in check, search starts here
         // Increase reduction for cut nodes (~3 Elo)
         if (cutNode)
             r += 2;
+
+        if (!PvNode && negExt)
+            r++;
 
         // Increase reduction if ttMove is a capture (~3 Elo)
         if (ttCapture)
