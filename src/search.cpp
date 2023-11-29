@@ -554,7 +554,7 @@ Value search(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth, boo
     Depth    extension, newDepth;
     Value    bestValue, value, ttValue, eval, maxValue, probCutBeta;
     bool     givesCheck, improving, priorCapture, singularQuietLMR;
-    bool     capture, moveCountPruning, ttCapture;
+    bool     capture, moveCountPruning, ttCapture, newBm;
     Piece    movedPiece;
     int      moveCount, captureCount, quietCount;
 
@@ -916,7 +916,7 @@ moves_loop:  // When in check, search starts here
                   &thisThread->pawnHistory, countermove, ss->killers);
 
     value            = bestValue;
-    moveCountPruning = singularQuietLMR = false;
+    moveCountPruning = singularQuietLMR = newBm = false;
 
     // Indicate PvNodes that will probably fail low if the node was searched
     // at a depth equal to or greater than the current depth, and the result
@@ -1307,6 +1307,8 @@ moves_loop:  // When in check, search starts here
                     if (depth > 2 && depth < 12 && beta < 13828 && value > -11369)
                         depth -= 2;
 
+                    newBm = true;
+
                     assert(depth > 0);
                     alpha = value;  // Update alpha! Always alpha < beta
                 }
@@ -1323,6 +1325,9 @@ moves_loop:  // When in check, search starts here
             else
                 quietsSearched[quietCount++] = move;
         }
+
+        if (!newBm)
+            moveCountPruning = false;
     }
 
     // Step 21. Check for mate and stalemate
