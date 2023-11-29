@@ -1195,7 +1195,11 @@ moves_loop:  // When in check, search starts here
                 newDepth += doDeeperSearch - doShallowerSearch;
 
                 if (newDepth > d)
-                    value = -search<NonPV>(pos, ss + 1, -(alpha + 1), -alpha, newDepth, !cutNode);
+                {
+                    const bool cn = newDepth - d == 1;
+                    value         = -search<NonPV>(pos, ss + 1, -(alpha + 1), -alpha, newDepth,
+                                           cn ? true : !cutNode);
+                }
 
                 int bonus = value <= alpha ? -stat_malus(newDepth)
                           : value >= beta  ? stat_bonus(newDepth)
