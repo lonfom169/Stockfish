@@ -1139,7 +1139,7 @@ moves_loop:  // When in check, search starts here
             r++;
 
         // Decrease reduction for PvNodes (~2 Elo)
-        if (PvNode)
+        if (PvNode && ttMove)
             r--;
 
         // Decrease reduction if a quiet ttMove has been singularly extended (~1 Elo)
