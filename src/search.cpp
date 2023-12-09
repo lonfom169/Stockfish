@@ -1511,7 +1511,7 @@ Value qsearch(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth) {
         {
             // Futility pruning and moveCount pruning (~10 Elo)
             if (!givesCheck && to_sq(move) != prevSq && futilityBase > VALUE_TB_LOSS_IN_MAX_PLY
-                && type_of(move) != PROMOTION)
+                && type_of(move) != PROMOTION && move != ttMove)
             {
                 if (moveCount > 2)
                     continue;
