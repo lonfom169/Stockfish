@@ -1186,8 +1186,13 @@ moves_loop:  // When in check, search starts here
             if (!ttMove)
                 r += 2;
 
+            Depth fsDepth = newDepth - (r > 3);
+
             // Note that if expected reduction is high, we reduce search depth by 1 here (~9 Elo)
-            value = -search<NonPV>(pos, ss + 1, -(alpha + 1), -alpha, newDepth - (r > 3), !cutNode);
+            value = -search<NonPV>(pos, ss + 1, -(alpha + 1), -alpha, fsDepth, !cutNode);
+
+            if (PvNode && value > alpha)
+                value = -search<NonPV>(pos, ss + 1, -(alpha + 1), -alpha, fsDepth + 1, !cutNode);
         }
 
         // For PV nodes only, do a full PV search on the first move or after a fail high,
